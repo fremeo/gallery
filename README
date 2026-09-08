@@ -1,0 +1,15 @@
+## Gallery-Modul
+
+Das Gallery-Modul ist eine flexible Erweiterung zur Verwaltung und visuellen Darstellung von Fotoalben. Es ermöglicht sowohl die administrative Organisation von Medien im Backend als auch die sichere Bereitstellung für Endnutzer im Frontend.
+
+### Features
+* **Unbegrenzte Alben-Struktur:** Erstellen Sie beliebig viele, voneinander unabhängige Fotoalben.
+* **Massen-Upload:** Unter jedem Album können beliebig viele Fotodateien hochgeladen und verwaltet werden.
+* **Passwortschutz & Privatsphäre:** Alben können auf Wunsch mit einem individuellen Passwort geschützt werden, um sensible Inhalte vor unbefugtem Zugriff zu sichern.
+* **Gästezugang & Berechtigungsstufen:** Inhalte können flexibel entweder öffentlich für alle Gäste oder exklusiv für benutzerdefinierte, zugangsberechtigte Personengruppen freigeschaltet werden.
+* **Download-Funktion:** Integrierte Möglichkeit für berechtigte Frontend-Besucher, die Bilder direkt herunterzuladen.
+
+### System-Integration
+Das Modul gliedert sich nahtlos in die bestehende Struktur ein:
+* **Daten-Isolierung:** Alle hochgeladenen Bilddateien werden isoliert im globalen `data/`-Verzeichnis des Projekts abgelegt.
+* **Template-Vererbung:** Die Frontend-Darstellung nutzt das Smarty 4 Vererbungsprinzip (z. B. über `index__gallery.tpl`), wodurch das Design extrem flexibel an das Haupt-Template angepasst oder von anderen Modulen überlagert werden kann.
