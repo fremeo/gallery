@@ -1,0 +1,15 @@
+{
+  "name": "fremeo/gallery",
+  "description": "Photo gallery module",
+  "license": "proprietary",
+  "type": "module",
+  "keywords": ["fremeo", "fremeo-module", "gallery", "image"],
+  "require": {
+    "php": "^8.0",
+    "fremeo/core": "^v0.0"
+  },
+  "prefer-stable": true,
+  "psr-4": {
+    "fremeo\\gallery\\": "system/core/"
+  }
+}
