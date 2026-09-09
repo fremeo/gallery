@@ -31,16 +31,17 @@ $C['fremeo/gallery']['CData'] = new \phploader\CData([
 $C['fremeo/gallery']['CData']->registerPattern([
     'GALLERY_CATEGORY' => $Pattern['GALLERY_CATEGORY']
 ]);
-
+/*
 // ensure files directory exists
-if (!is_dir(PROJECT_ROOT . 'data/fremeo~gallery/files/')) {
-    @mkdir(PROJECT_ROOT . 'data/fremeo~gallery/files/', 0755, true);
+if (!is_dir(PROJECT_ROOT . 'data/fremeo~gallery/file/')) {
+    @mkdir(PROJECT_ROOT . 'data/fremeo~gallery/file/', 0755, true);
 }
 
 // ensure module data dir exists
 if (!is_dir(PROJECT_ROOT . 'data/fremeo~gallery/')) {
     @mkdir(PROJECT_ROOT . 'data/fremeo~gallery/', 0755, true);
 }
+*/
 
 // expose minimal module metadata
 $D['MODULE']['D']['fremeo/gallery'] = $D['MODULE']['D']['fremeo/gallery'] ?? [];
