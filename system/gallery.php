@@ -13,7 +13,7 @@ if($page === 'frontend__gallery'){
         $C['fremeo/gallery']['CData']->get_object($cat,$f);
     }
 
-    $G = $cat['GALLERY_CATEGORY']['D'][$catId] ?? null;
+    $G = $cat['ALBUM']['D'][$catId] ?? null;
     if(!$G){
         $D['_PAGE'] = 'error.404';
         return;

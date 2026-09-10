@@ -1,7 +1,7 @@
 <?php
 
-	$F['GALLERY_CATEGORY']['W'][0]['ID'] = $R['CategoryId']; 
-    $F['GALLERY_CATEGORY']['IMAGE'] = []; 
+	$F['ALBUM']['W'][0]['ID'] = $R['CategoryId']; 
+    $F['ALBUM']['IMAGE'] = []; 
 
 
 	$C['fremeo/gallery']['CData']->get_object($D,$F);

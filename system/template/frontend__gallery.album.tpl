@@ -2,7 +2,7 @@
 {block name="inner_body"}
 
     <div class="gallery-images">
-      {foreach from=$D.GALLERY_CATEGORY.D key=kCat item=img}
+      {foreach from=$D.ALBUM.D key=kCat item=img}
 		{$img.Title} - {$img.DateFrom}
         <a href="?R[Page]=frontend__gallery&R[ModuleId]=fremeo/gallery&R[CategoryId]={$kCat}" class="gallery-thumb" data-file="{$img.File}">
 		

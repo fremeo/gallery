@@ -3,7 +3,7 @@
 
 
 if(isset($C['fremeo/gallery']['CData'])) {
-    $f['GALLERY_CATEGORY']['IMAGE'] = [];
+    $f['ALBUM']['IMAGE'] = [];
     $C['fremeo/gallery']['CData']->get_object($D,$f);
 }
 

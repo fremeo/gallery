@@ -5,7 +5,7 @@ $list = [];
 if (isset($C['fremeo/gallery']['CData'])) {
     $f = [];
     $C['fremeo/gallery']['CData']->get_object($out, $f);
-    foreach ($out['GALLERY_CATEGORY']['D'] ?? [] as $id => $cat) {
+    foreach ($out['ALBUM']['D'] ?? [] as $id => $cat) {
         $list[$id] = [
             'Title' => $cat['Title'] ?? '',
             'DateFrom' => $cat['DateFrom'] ?? '',

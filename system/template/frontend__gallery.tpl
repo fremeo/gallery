@@ -1,25 +1,25 @@
 {** frontend gallery index **}
 {block name="inner_body" prepend}
-<h1>{$D.GALLERY_CATEGORY.Title|escape}</h1>
-{if $D.GALLERY_CATEGORY.Password}
+<h1>{$D.ALBUM.Title|escape}</h1>
+{if $D.ALBUM.Password}
   <form method="post">
     <label>Passwort: <input type="password" name="gallery_password"></label>
-    <input type="hidden" name="D[GalleryId]" value="{$D.GALLERY_CATEGORY.Id}">
+    <input type="hidden" name="D[GalleryId]" value="{$D.ALBUM.Id}">
     <button type="submit">Öffnen</button>
   </form>
 {else}
   <div class="gallery-start">
-    {$D.GALLERY_CATEGORY.D[{$D.R.CategoryId}].Title}
-    {if $D.GALLERY_CATEGORY.D[{$D.R.CategoryId}].FileId}
+    {$D.ALBUM.D[{$D.R.CategoryId}].Title}
+    {if $D.ALBUM.D[{$D.R.CategoryId}].FileId}
       <picture>
-			<source srcset="file/{$D.GALLERY_CATEGORY.D[{$D.R.CategoryId}].FileId}_50x50.avif" type="image/avif">
-			<source srcset="file/{$D.GALLERY_CATEGORY.D[{$D.R.CategoryId}].FileId}_50x50.webp" type="image/webp">
-			<img src="file/{$D.GALLERY_CATEGORY.D[{$D.R.CategoryId}].FileId}_50x50.png">
+			<source srcset="file/{$D.ALBUM.D[{$D.R.CategoryId}].FileId}_50x50.avif" type="image/avif">
+			<source srcset="file/{$D.ALBUM.D[{$D.R.CategoryId}].FileId}_50x50.webp" type="image/webp">
+			<img src="file/{$D.ALBUM.D[{$D.R.CategoryId}].FileId}_50x50.png">
 		</picture>
     {/if}
-    <p>{$D.GALLERY_CATEGORY.DateFrom} - {$D.GALLERY_CATEGORY.DateTo}</p>
+    <p>{$D.ALBUM.DateFrom} - {$D.ALBUM.DateTo}</p>
     <div class="gallery-images">
-      {foreach from=$D.GALLERY_CATEGORY.D[{$D.R.CategoryId}].IMAGE.D item=img}
+      {foreach from=$D.ALBUM.D[{$D.R.CategoryId}].IMAGE.D item=img}
         <a href="#" class="gallery-thumb" data-file="./file/{$img.FileId}_1000x1000.jpg">
 			<picture>
 				<source srcset="file/{$img.FileId}_200x200.avif" type="image/avif">
