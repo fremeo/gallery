@@ -1,41 +1,133 @@
 <?php
-// Admin edit/create category and handle multi-upload
+// Admin: Album bearbeiten (Daten, Startbild, Bilder hochladen / sortieren / löschen). Template: admin__gallery.edit.tpl
 
-$Id = $_REQUEST['Id'] ?? null;
-// also accept Id from posted structure
-$postedId = $_POST['D']['ALBUM']['Id'] ?? null;
-if(!$Id && $postedId) $Id = $postedId;
-#$D['ALBUM'] = [];
-$D['UPLOADED'] = [];
+$DB       = $C['fremeo/gallery']['CData'];
+$File     = $C['fremeo/gallery']['File'];
+$id       = $R['Id'] ?? null;
+$imageExt = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif']; // erlaubte Dateitypen
 
-if(($D['ACTION']??null) == 'save') {
-    $C['fremeo/gallery']['CData']->set_object($D); 
-    $D['MSG'] = 'Gespeichert';
-    return;
+$E = ['Id' => $id, 'Msg' => null, 'Info' => null, 'Error' => null];
+if (!$id || !preg_match('/^[A-Za-z0-9_-]+$/', $id)) {
+	$E['Id'] = null;
+	$E['Error'] = 'Kein gültiges Album gewählt.';
+	$D['GALLERY_EDIT'] = $E;
+	return;
 }
 
-if(isset($_FILES['images'])) {
+// Album mit Bildern laden (nach Sort sortiert)
+$load = function () use ($DB, $id) {
+	$f['ALBUM']['W'][0]['ID'] = $id;
+	$f['ALBUM']['IMAGE']['O'][0]['Sort'] = 'ASC';
+	$DB->get_object($d, $f);
+	return $d['ALBUM']['D'][$id] ?? [];
+};
 
-	$_arrImg = $C['fremeo/gallery']['File']->add($_FILES['images']);
-	if($_arrImg) {
-		foreach($_arrImg AS $kIMG => $IMG) {
-			$img = ['Active'=>1,'FileId'=>$kIMG,'Title'=>$IMG['Name'],'Sort'=>0];
-			$dImg = ['ALBUM' => ['D' => [ $D['R']['Id'] => [ 'IMAGE' => [ 'D' => [ $kIMG => $img ] ] ] ] ]];
-			
-			$C['fremeo/gallery']['CData']->set_object($dImg);
+// Wird die Datei noch von einem anderen Album (als Bild oder Startbild) verwendet?
+$inUse = function ($fileId) use ($DB, $id) {
+	$byImage['ALBUM']['W'][0]['IMAGE']['W'][0]['FileId'] = $fileId;
+	$byCover['ALBUM']['W'][0]['FileId'] = $fileId;
+	foreach ([$byImage, $byCover] as $q) {
+		$DB->get_object($u, $q);
+		if (array_diff(array_keys($u['ALBUM']['D'] ?? []), [$id])) return true;
+		unset($u);
+	}
+	return false;
+};
+
+if (($D['ACTION'] ?? null) == 'save') {
+	$post     = $D['ALBUM']['D'][$id] ?? [];
+	$old      = $load();
+	$images   = (array)($old['IMAGE']['D'] ?? []);
+	$oldCover = $old['FileId'] ?? '';
+
+	$U = ['ALBUM' => ['D' => [$id => array_intersect_key($post, array_flip(['Active', 'Title', 'DateFrom', 'DateTo', 'Password', 'FileId']))]]];
+	$row = &$U['ALBUM']['D'][$id];
+
+	// Sortierung und Löschen: nur Bilder, die zu diesem Album gehören
+	$deleted = [];
+	foreach ((array)($post['IMAGE']['D'] ?? []) as $imgId => $img) {
+		if (!isset($images[$imgId])) continue;
+		if (!empty($img['__DELETE__'])) {
+			$row['IMAGE']['D'][$imgId] = '__DELETE__';
+			unset($images[$imgId]);
+			$deleted[] = $imgId;
+		} elseif (isset($img['Sort'])) {
+			$row['IMAGE']['D'][$imgId]['Sort'] = (int)$img['Sort'];
 		}
 	}
 
+	// Startbild: ein gelöschtes Album-Bild ist kein Startbild mehr, eine neue Datei ersetzt es
+	if (in_array($row['FileId'] ?? '', $deleted, true)) $row['FileId'] = '';
+	if (array_filter((array)($_FILES['cover']['tmp_name'] ?? []))) {
+		$cover = array_key_first($File->add($_FILES['cover'], $imageExt));
+		if ($cover) $row['FileId'] = $cover;
+	}
 
+	// Neue Bilder (keine Begrenzung)
+	if (array_filter((array)($_FILES['images']['tmp_name'] ?? []))) {
+		$sort = $images ? max(array_map(fn($i) => (int)($i['Sort'] ?? 0), $images)) + 1 : 0;
+		foreach ($File->add($_FILES['images'], $imageExt) as $fid => $info) {
+			if (isset($images[$fid])) continue; // schon im Album
+			$row['IMAGE']['D'][$fid] = ['Active' => 1, 'FileId' => $fid, 'Sort' => $sort++];
+			$images[$fid] = [];
+		}
+	}
+
+	// Ohne Startbild: erstes Bild des Albums
+	if (empty($row['FileId']) && $images) $row['FileId'] = array_key_first($images);
+	$newCover = $row['FileId'] ?? '';
+
+	// SEO-Link: Eingabe leer = automatisch "gallery/titel" (nur wenn noch kein Link existiert), sonst anlegen bzw. umbenennen
+	if (isset($C['Link'])) {
+		$Link   = $C['Link'];
+		$linkId = $old['LinkId'] ?? '';
+		$seoNow = $linkId ? ($Link->getById($linkId)['LINK']['D'][$linkId]['FromURL'] ?? '') : '';
+		if (!$seoNow) $linkId = '';
+
+		$seo = $Link->normalize(trim($post['SeoUrl'] ?? ''));
+		if (!$seo && !$linkId && ($slug = $Link->normalize($post['Title'] ?? ''))) $seo = "gallery/{$slug}";
+
+		if ($seo && $seo !== $seoNow) {
+			if ($linkId) {
+				$res = $Link->rename(['OldSeoId' => $linkId, 'NewSeo' => $seo])[0];
+				$final = $res['NewSeo'];
+				if ($res['Success']) $linkId = $res['NewId'];
+			} else {
+				$res = $Link->create(['SeoURL' => $seo, 'Page' => 'frontend__gallery', 'ModuleId' => 'fremeo/gallery', 'Param' => "R[Id]={$id}"])[0];
+				$final = $res['SeoUrl'];
+				$linkId = $res['LinkId'];
+			}
+			if ($final !== $seo) $E['Info'] = "Der SEO-Link \"{$seo}\" war schon vergeben, verwendet wurde \"{$final}\".";
+		}
+		$row['LinkId'] = $linkId; // ALBUM.LinkId immer passend zum aktuellen Link
+	}
+	unset($row);
+
+	$DB->set_object($U);
+
+	// Nicht mehr benötigte Dateien löschen (gelöschte Bilder, ersetztes Startbild), sofern sie nirgends mehr verwendet werden
+	foreach (array_unique(array_filter([...$deleted, $oldCover !== $newCover ? $oldCover : null])) as $fileId) {
+		if (!isset($images[$fileId]) && $fileId !== $newCover && !$inUse($fileId)) $File->delete($fileId);
+	}
+
+	$E['Msg'] = 'Gespeichert';
+	unset($D['ALBUM']); // gepostete Daten nicht mit der Ausgabe vermischen
 }
 
-// load existing category for edit
-
-if($R['Id'] && isset($C['fremeo/gallery']['CData'])) {
-
-    $f['ALBUM']['W'][0]['ID'] = $R['Id'];
-	$f['ALBUM']['IMAGE'] = [];
-    $C['fremeo/gallery']['CData']->get_object($D, $f);
+$album  = $load();
+$images = [];
+foreach ((array)($album['IMAGE']['D'] ?? []) as $imgId => $img) {
+	$images[$imgId] = ['FileId' => $img['FileId'] ?? $imgId, 'Sort' => $img['Sort'] ?? 0];
 }
+$cover = $album['FileId'] ?? '';
+$linkId = $album['LinkId'] ?? '';
+$seoUrl = ($linkId && isset($C['Link'])) ? ($C['Link']->getById($linkId)['LINK']['D'][$linkId]['FromURL'] ?? '') : '';
+
+$D['GALLERY_EDIT'] = $E + [
+	'Album'  => $album + ['Active' => 1],
+	'Images' => $images,
+	'Cover'  => $cover ? [$cover => ['FileId' => $cover]] : [],
+	'SeoUrl' => $seoUrl,
+];
 
 return;

@@ -4,18 +4,19 @@
 $Pattern = [];
 
 $Pattern['ALBUM'] = [
-    'Active' => ['Type' => 'checkbox'],
-    'DateFrom' => ['Type' => 'text'],
-    'DateTo' => ['Type' => 'text'],
-    'Title' => ['Type' => 'text'],
-    'Password' => ['Type' => 'text'],
-    'FileId' => ['Type' => 'id'],
+    'Active'    => ['Type' => 'checkbox'],
+    'DateFrom'  => ['Type' => 'text'],
+    'DateTo'    => ['Type' => 'text'],
+    'Title'     => ['Type' => 'text'],
+    'Password'  => ['Type' => 'text'],
+    'FileId'    => ['Type' => 'id'],
+    'LinkId'    => ['Type' => 'id']
 ];
 
 $Pattern['ALBUM']['D']['IMAGE'] = [
-            'Active' => ['Type' => 'checkbox'],
-            'FileId' => ['Type' => 'id'],
-            'Sort' => ['Type' => 'number']
+            'Active'    => ['Type' => 'checkbox'],
+            'FileId'    => ['Type' => 'id'],
+            'Sort'      => ['Type' => 'number']
 ];
 
 

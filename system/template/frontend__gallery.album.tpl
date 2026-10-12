@@ -1,30 +1,40 @@
-{** frontend gallery index **}
+{** Frontend: Liste aller aktiven Alben (Daten: $D.GALLERY_ALBUMS aus frontend__gallery.album.php) **}
 {block name="inner_body"}
+	<div class="container py-4">
+		<h1 class="h3 mb-4"><i class="fa-regular fa-images me-2"></i>Bildergalerie</h1>
 
-<div class="row row-cols-1 row-cols-md-3 g-4">
-      {foreach from=$D.ALBUM.D key=kCat item=img}
-		<div class="col">
-			<div class="card h-100" style="width: 18rem;">
-				<picture>
-					<source srcset="file/{$img.FileId}_50x50.avif" type="image/avif">
-					<source srcset="file/{$img.FileId}_50x50.webp" type="image/webp">
-					<img class="card-img-top" src="file/{$img.FileId}_50x50.png">
-				</picture>
-				<div class="card-body">
-					<h5 class="card-title">{$img.Title}</h5>
-					<p class="card-text">{$img.DateFrom} - {$img.DateTo}</p>
-				</div>
-				{if $img.Password}
-				<div>
-					{input p=['name' => "R[ALBUM][D][{$kCat}][Password]", 'type' => 'password', 'placeholder' => 'Password' ]}
-				</div>
-				{/if}
-				<div class="card-footer text-body-secondary text-center">
-					<a href="?R[Page]=frontend__gallery&R[ModuleId]=fremeo/gallery&R[CategoryId]={$kCat}" class="btn btn-primary">Album</a>
-				</div>
+		{if $D.GALLERY_ALBUMS}
+		<div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4">
+			{foreach $D.GALLERY_ALBUMS as $id => $a}
+			<div class="col">
+				<a href="{$a.Url|escape}" class="album-card card h-100 text-decoration-none shadow-sm">
+					<div class="ratio ratio-4x3 bg-light rounded-top overflow-hidden">
+						{if $a.FileId}
+							<img src="file/{$a.FileId}_480x360.webp" alt="{$a.Title|escape}" class="object-fit-cover" loading="lazy">
+						{else}
+							<div class="d-flex align-items-center justify-content-center text-secondary fs-1">
+								{if $a.Locked}<i class="fa-solid fa-lock"></i>{else}<i class="fa-regular fa-image"></i>{/if}
+							</div>
+						{/if}
+					</div>
+					<div class="card-body">
+						<h2 class="h5 card-title text-body mb-1">{if $a.Locked}<i class="fa-solid fa-lock text-warning me-1" title="Passwortgeschützt"></i>{/if}{$a.Title|default:'(ohne Titel)'|escape}</h2>
+						{if $a.DateFrom || $a.DateTo}
+							<p class="card-text small text-secondary mb-0"><i class="fa-regular fa-calendar me-1"></i>{$a.DateFrom|escape}{if $a.DateTo} &ndash; {$a.DateTo|escape}{/if}</p>
+						{/if}
+					</div>
+				</a>
 			</div>
+			{/foreach}
 		</div>
-      {/foreach}
-</div>
-
+		{else}
+			<div class="alert alert-info">Es sind noch keine Alben vorhanden.</div>
+		{/if}
+	</div>
+	{literal}
+	<style>
+		.album-card { transition: transform .15s, box-shadow .15s; }
+		.album-card:hover { transform: translateY(-3px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important; }
+	</style>
+	{/literal}
 {/block}
