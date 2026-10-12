@@ -53,3 +53,11 @@ $D['MODULE']['D']['fremeo/gallery']['DataDir'] = 'data/fremeo~gallery/';
 */
 // File upload handler: will be used by admin pages
 // Note: actual upload handling implemented in admin__gallery.edit.php
+
+
+#Todo: Registrierung von Dateien diese nach außen sichtbar sind. !!! eventuell die SEO-URL Funktion nutzen für die ausgabe der Dateien.
+/* 
+Active = 1
+FromURL = lightbox.js
+ToURL = R[File]=fremeo/gallery/public/glightbox/js/glightbox.js
+*/
