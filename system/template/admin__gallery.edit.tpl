@@ -24,22 +24,22 @@
 <form method="post" enctype="multipart/form-data">
   <input type="file" name="images[]" multiple>
   <button type="submit">Upload</button>
-  <input type="hidden" name="D[ALBUM][Id]" value="{$D.ALBUM.Id}">
+  <input type="hiddenl" name="R[Id]" value="{$D.R.Id}">
 </form>
 
 {if $D.ALBUM.D}
   <h3>Hochgeladene Bilder</h3>
-  <ul>
+  
   {foreach from=$D.ALBUM.D[ $D.R.Id ].IMAGE.D item=img}
-    <li>
+
 	<picture>
 		<source srcset="file/{$img.FileId}_50x50.avif" type="image/avif">
 		<source srcset="file/{$img.FileId}_50x50.webp" type="image/webp">
 		<img src="file/{$img.FileId}_50x50.png">
 	</picture>
-	</li>
+
   {/foreach}
-  </ul>
+
 {/if}
 
 {/block}

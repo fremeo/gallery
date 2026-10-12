@@ -8,92 +8,119 @@
     <button type="submit">Öffnen</button>
   </form>
 {else}
+
+
+
   <div class="gallery-start">
-    {$D.ALBUM.D[{$D.R.CategoryId}].Title}
-    {if $D.ALBUM.D[{$D.R.CategoryId}].FileId}
+    <h1>{$D.ALBUM.D[{$D.R.CategoryId}].Title}</h1>
+    {*if $D.ALBUM.D[{$D.R.CategoryId}].FileId}
       <picture>
 			<source srcset="file/{$D.ALBUM.D[{$D.R.CategoryId}].FileId}_50x50.avif" type="image/avif">
 			<source srcset="file/{$D.ALBUM.D[{$D.R.CategoryId}].FileId}_50x50.webp" type="image/webp">
 			<img src="file/{$D.ALBUM.D[{$D.R.CategoryId}].FileId}_50x50.png">
 		</picture>
-    {/if}
-    <p>{$D.ALBUM.DateFrom} - {$D.ALBUM.DateTo}</p>
+    {/if*}
+	{if {$D.ALBUM.DateFrom}}<p>{$D.ALBUM.DateFrom} - {$D.ALBUM.DateTo}</p>{/if}
     <div class="gallery-images">
-      {foreach from=$D.ALBUM.D[{$D.R.CategoryId}].IMAGE.D item=img}
-        <a href="#" class="gallery-thumb" data-file="./file/{$img.FileId}_1000x1000.jpg">
-			<picture>
-				<source srcset="file/{$img.FileId}_200x200.avif" type="image/avif">
-				<source srcset="file/{$img.FileId}_200x200.webp" type="image/webp">
-				<img src="file/{$img.FileId}_200x200.png">
-			</picture>
-        </a>
-      {/foreach}
+
+		{foreach from=$D.ALBUM.D[{$D.R.CategoryId}].IMAGE.D item=img}
+			<a href="file/{$img.FileId}_2000x2000.avif" class="glightbox3" data-download="file/{$img.FileId}_2000x2000.jpg" data-gallery="gallery1">	
+				<picture>
+					<source srcset="file/{$img.FileId}_200x200.avif" type="image/avif">
+					<source srcset="file/{$img.FileId}_200x200.webp" type="image/webp">
+					<img class="rounded" src="file/{$img.FileId}_200x200.png">
+				</picture>
+			</a>
+		{/foreach}
+		
     </div>
   </div>
+
+
+
 {/if}
 
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  const thumbs = Array.from(document.querySelectorAll('.gallery-thumb'));
-  if(!thumbs.length) return;
-  const files = thumbs.map(t => t.dataset.file);
 
-  thumbs.forEach((t,i) => t.addEventListener('click', function(e){
-    e.preventDefault();
-    openGallery(i);
-  }));
 
-  function openGallery(startIndex){
-    let idx = startIndex;
-    const modal = document.createElement('div');
-    modal.className = 'gallery-modal';
-    Object.assign(modal.style, {
-      position: 'fixed', left:0, top:0, right:0, bottom:0,
-      background: 'rgba(0,0,0,0.85)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:9999
+
+
+{*https://biati-digital.github.io/glightbox/*}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
+	<script src="https://cdn.jsdelivr.net/gh/mcstudios/glightbox/dist/js/glightbox.min.js"></script>
+
+	
+  
+{*glightbx version 3.3.1 https://github.com/biati-digital/glightbox/tree/master*}
+<script type="text/javascript">
+    // 1. Initialisiere die Galerie ganz normal (ohne das fehleranfällige Template)
+    const lightbox = GLightbox({ 
+        selector: '.glightbox3',
+		closeOnOutsideClick: false
     });
 
-    const container = document.createElement('div');
-    Object.assign(container.style, { position:'relative', maxWidth:'90%', maxHeight:'90%'});
+    // 2. Sobald die Lightbox das erste Mal geöffnet wird, bauen wir den Button oben rechts ein
+    lightbox.on('open', () => {
+        // Suche das Schließen-Kreuz, um unseren Button direkt daneben zu platzieren
+        const closeBtn = document.querySelector('.gclose');
+        
+        if (closeBtn && !document.querySelector('.gdownload-custom')) {
+            // Erstelle das Link-Element für den Download
+            const downloadBtn = document.createElement('a');
+            downloadBtn.className = 'gdownload-custom';
+            downloadBtn.setAttribute('download', '');
+            downloadBtn.title = 'Original herunterladen';
+            
+            // CSS-Styling, damit er sich perfekt links neben das Schließen-Kreuz (X) einfügt
+            downloadBtn.style.cssText = `
+                position: absolute;
+                right: 75px;
+                top: 15px;
+                z-index: 99999;
+                color: #fff;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 40px;
+                height: 40px;
+                opacity: 0.7;
+                transition: opacity 0.2s;
+            `;
+            
+            // Ein sauberes SVG-Icon (Download-Pfeil) einfügen
+            downloadBtn.innerHTML = `
+                <svg xmlns="http://w3.org" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+            `;
 
-    const img = document.createElement('img');
-    img.style.maxWidth='100%'; img.style.maxHeight='100%'; img.src = files[idx] || '';
-    container.appendChild(img);
+            // Hover-Effekt per JS hinzufügen
+            downloadBtn.addEventListener('mouseenter', () => downloadBtn.style.opacity = '1');
+            downloadBtn.addEventListener('mouseleave', () => downloadBtn.style.opacity = '0.7');
 
-    const btnClose = document.createElement('button');
-    btnClose.setAttribute('aria-label','Schließen');
-    btnClose.innerHTML = '✕';
-    Object.assign(btnClose.style, {
-      position:'absolute', right:'-10px', top:'-10px', background:'#fff', border:'none', borderRadius:'50%', width:'36px', height:'36px', cursor:'pointer', fontSize:'18px', lineHeight:'1'
+            // Den Button in das Elternelement des Schließen-Buttons einfügen
+            closeBtn.parentNode.appendChild(downloadBtn);
+        }
     });
-    btnClose.addEventListener('click', close);
-    container.appendChild(btnClose);
 
-    const btnPrev = document.createElement('button');
-    btnPrev.innerHTML = '◀';
-    Object.assign(btnPrev.style, { position:'absolute', left:'-60px', top:'50%', transform:'translateY(-50%)', background:'transparent', border:'none', color:'#fff', fontSize:'34px', cursor:'pointer'});
-    btnPrev.addEventListener('click', function(e){ e.stopPropagation(); idx = (idx - 1 + files.length) % files.length; update(); });
-    container.appendChild(btnPrev);
-
-    const btnNext = document.createElement('button');
-    btnNext.innerHTML = '▶';
-    Object.assign(btnNext.style, { position:'absolute', right:'-60px', top:'50%', transform:'translateY(-50%)', background:'transparent', border:'none', color:'#fff', fontSize:'34px', cursor:'pointer'});
-    btnNext.addEventListener('click', function(e){ e.stopPropagation(); idx = (idx + 1) % files.length; update(); });
-    container.appendChild(btnNext);
-
-    modal.appendChild(container);
-
-    modal.addEventListener('click', function(e){ if(e.target === modal) close(); });
-    document.addEventListener('keydown', keyHandler);
-    document.body.appendChild(modal);
-
-    function update(){ img.src = files[idx] || ''; }
-    function close(){ document.removeEventListener('keydown', keyHandler); modal.remove(); }
-    function keyHandler(e){
-      if(e.key === 'ArrowLeft'){ idx = (idx - 1 + files.length) % files.length; update(); }
-      else if(e.key === 'ArrowRight'){ idx = (idx + 1) % files.length; update(); }
-      else if(e.key === 'Escape'){ close(); }
-    }
-  }
-});
+    // 3. Bei jedem Bildwechsel den Download-Link aktualisieren
+    lightbox.on('slide_changed', ({ current }) => {
+        const customDownloadBtn = document.querySelector('.gdownload-custom');
+        if (customDownloadBtn) {
+            // Hole das data-download Attribut des aktuellen Bildes
+            const downloadUrl = current.trigger.getAttribute('data-download');
+            
+            if (downloadUrl) {
+                customDownloadBtn.href = downloadUrl;
+                customDownloadBtn.style.display = 'inline-flex'; // Anzeigen, wenn URL vorhanden
+            } else {
+                customDownloadBtn.style.display = 'none'; // Verstecken, falls kein Download-Pfad existiert
+            }
+        }
+    });
 </script>
+
+
 {/block}
