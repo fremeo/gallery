@@ -34,8 +34,8 @@ $open = true;
 if (!empty($A['Password'])) {
 	$token = hash('sha256', (string)$A['Password']);
 
-	if (isset($_POST['gallery_password'])) {
-		if (hash_equals((string)$A['Password'], (string)$_POST['gallery_password'])) {
+	if (isset($R['Passwort'])) {
+		if (hash_equals((string)$A['Password'], (string)$R['Passwort'])) {
 			$_SESSION['gallery_unlocked'][$id] = $token;
 		} else {
 			$G['Error'] = 'Das Passwort ist nicht korrekt.';

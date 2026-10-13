@@ -18,7 +18,7 @@
 							{if $G.Error}<div class="alert alert-danger py-2">{$G.Error|escape}</div>{/if}
 							<form method="post">
 								<div class="input-group">
-									{input p=['name'=>'gallery_password', 'type'=>'password', 'placeholder'=>'Passwort']}
+									{input p=['name'=>'R[Passwort]', 'type'=>'password', 'placeholder'=>'Passwort']}
 									<button type="submit" class="btn btn-primary">Öffnen</button>
 								</div>
 							</form>
@@ -35,19 +35,22 @@
 			</p>
 
 			{if $G.Images}
-			<div class="row g-2 row-cols-3 row-cols-sm-4 row-cols-md-5 row-cols-lg-6">
+			<div class="gallery-grid" id="gallery-grid">
 				{foreach $G.Images as $img}
-				<div class="col">
-					<a href="file/{$img.FileId}_2000x2000.avif" class="glightbox3 ratio ratio-1x1 rounded overflow-hidden bg-light" data-download="file/{$img.FileId}_2000x2000.jpg" data-gallery="gallery1">
-						<picture>
-							<source srcset="file/{$img.FileId}_200x200.avif" type="image/avif">
-							<source srcset="file/{$img.FileId}_200x200.webp" type="image/webp">
-							<img class="w-100 h-100 object-fit-cover" src="file/{$img.FileId}_200x200.png" alt="" loading="lazy">
-						</picture>
-					</a>
-				</div>
+				<a href="file/{$img.FileId}_2000x2000.avif" class="gallery-item glightbox3{if $img@index >= 60} d-none gallery-more{/if}" data-download="file/{$img.FileId}_2000x2000.jpg" data-gallery="gallery1">
+					<picture>
+						<source srcset="file/{$img.FileId}_200x200.avif" type="image/avif">
+						<source srcset="file/{$img.FileId}_200x200.webp" type="image/webp">
+						<img src="file/{$img.FileId}_200x200.png" alt="" loading="lazy">
+					</picture>
+				</a>
 				{/foreach}
 			</div>
+			{if count($G.Images) > 60}
+			<div class="text-center mt-4">
+				<button type="button" class="btn btn-outline-primary" id="gallery-more"><i class="fa-solid fa-angles-down me-1"></i> Weitere Bilder anzeigen <span class="badge text-bg-secondary" id="gallery-rest"></span></button>
+			</div>
+			{/if}
 			{else}
 				<div class="alert alert-info">In diesem Album sind noch keine Bilder.</div>
 			{/if}
@@ -57,10 +60,35 @@
 			<script src="https://cdn.jsdelivr.net/gh/mcstudios/glightbox/dist/js/glightbox.min.js"></script>
 			{literal}
 			<style>
+				.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+				.gallery-item { position: relative; display: block; aspect-ratio: 1 / 1; overflow: hidden; border-radius: .375rem; background: #f1f3f5; }
+				.gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s; }
+				.gallery-item::after { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0); transition: background .3s; }
+				.gallery-item:hover img { transform: scale(1.08); }
+				.gallery-item:hover::after { background: rgba(0,0,0,.15); }
+				@media (min-width: 992px) { .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; } }
 				.gdownload-custom { position: absolute; right: 75px; top: 15px; z-index: 99999; width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; color: #fff; opacity: .7; transition: opacity .2s; }
 				.gdownload-custom:hover { opacity: 1; }
 			</style>
 			<script>
+				// Weitere Bilder schrittweise einblenden (60 pro Klick)
+				(function() {
+					var btn = document.getElementById('gallery-more');
+					if (!btn) return;
+					var rest = document.getElementById('gallery-rest');
+					function update() {
+						var n = document.querySelectorAll('.gallery-more.d-none').length;
+						if (!n) btn.parentNode.remove(); else rest.textContent = n;
+					}
+					btn.addEventListener('click', function() {
+						document.querySelectorAll('.gallery-more.d-none').forEach(function(el, i) {
+							if (i < 60) el.classList.remove('d-none');
+						});
+						update();
+					});
+					update();
+				})();
+
 				var lightbox = GLightbox({ selector: '.glightbox3', closeOnOutsideClick: false });
 
 				// Download-Button neben dem Schließen-Kreuz

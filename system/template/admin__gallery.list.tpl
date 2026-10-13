@@ -40,7 +40,11 @@
 						<td>{$row.DateFrom|escape}</td>
 						<td>{$row.DateTo|escape}</td>
 						<td class="text-center">{if $row.Locked}<i class="fa-solid fa-lock text-warning" title="Passwortgeschützt"></i>{/if}</td>
-						<td class="text-end"><a class="btn btn-outline-primary btn-sm" href="?R[ModuleId]=fremeo/gallery&R[Page]=admin__gallery.edit&R[Id]={$id}" title="Bearbeiten"><i class="fa-solid fa-pen"></i></a></td>
+						<td class="text-end text-nowrap">
+							<a class="btn btn-outline-primary btn-sm" href="?R[ModuleId]=fremeo/gallery&R[Page]=admin__gallery.edit&R[Id]={$id}" title="Bearbeiten"><i class="fa-solid fa-pen"></i></a>
+							<input type="hidden" name="D[ALBUM][D][{$id}][__DELETE__]" value="1" disabled>
+							<button type="button" class="btn btn-outline-danger btn-sm" title="Löschen" data-title="{$row.Title|default:'(ohne Titel)'|escape}" onclick="if (confirm('Album \'' + this.dataset.title + '\' mit allen Bildern wirklich löschen?\nDas Löschen erfolgt erst beim Speichern.')) { var r = this.closest('tr'); r.querySelector('input[name$=\'[__DELETE__]\']').disabled = false; r.classList.add('d-none'); }"><i class="fa-solid fa-trash"></i></button>
+						</td>
 					</tr>
 				{/foreach}
 				</tbody>

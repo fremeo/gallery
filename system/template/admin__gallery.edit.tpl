@@ -77,7 +77,7 @@
 			'sortable'=>1,
 			'deletable'=>1,
 			'upload'=>'images',
-			'accept'=>'.jpg,.jpeg,.png,.gif,.webp,.avif',
+			'accept'=>'.jpg,.jpeg,.png,.gif,.webp,.avif,.zip',
 			'size'=>64,
 			'help'=>'Ziehen = sortieren, Papierkorb = entfernen, Plus = Bilder hinzufügen (Upload beim Speichern)'
 		]}

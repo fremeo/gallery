@@ -66,7 +66,24 @@ if (($D['ACTION'] ?? null) == 'save') {
 	// Neue Bilder (keine Begrenzung)
 	if (array_filter((array)($_FILES['images']['tmp_name'] ?? []))) {
 		$sort = $images ? max(array_map(fn($i) => (int)($i['Sort'] ?? 0), $images)) + 1 : 0;
-		foreach ($File->add($_FILES['images'], $imageExt) as $fid => $info) {
+		$uploaded = $File->add($_FILES['images'], [...$imageExt, 'zip']);
+
+		// ZIP: entpacken, nur Bilder übernehmen, ZIP samt Eintrag entfernen
+		foreach ($uploaded as $zipId => $zipInfo) {
+			if ($zipInfo['Extension'] !== 'zip') continue;
+			$tmp = sys_get_temp_dir() . '/gallery_' . bin2hex(random_bytes(8));
+			foreach ($File->unzip($File->path($zipId, 'zip'), $tmp, $imageExt) as $path) {
+				$name = preg_replace('/^\d+_/', '', basename($path));
+				if ($img = $File->addFile($path, $name, $imageExt)) {
+					$uploaded[$img['Id']] = ['Name' => $img['Name'], 'Size' => $img['Size'], 'Extension' => $img['Extension']];
+				}
+			}
+			$C['Filesystem']->remove($tmp);
+			$File->delete($zipId);
+			unset($uploaded[$zipId]);
+		}
+
+		foreach ($uploaded as $fid => $info) {
 			if (isset($images[$fid])) continue; // schon im Album
 			$row['IMAGE']['D'][$fid] = ['Active' => 1, 'FileId' => $fid, 'Sort' => $sort++];
 			$images[$fid] = [];
