@@ -23,7 +23,7 @@ if($page === 'frontend__gallery'){
     if(!empty($G['Password'])){
         $entered = $_POST['gallery_password'] ?? null;
         if($entered !== $G['Password']){
-            $D['GALLERY'] = $G;
+            $R['Gallery'] = $G;
             return; // template will show password form
         }
     }
@@ -49,7 +49,7 @@ if($page === 'frontend__gallery'){
         }
     }
 
-    $D['GALLERY'] = [
+    $R['Gallery'] = [
         'Id'=>$catId,
         'Title'=>$G['Title'],
         'Password'=>$G['Password'] ?? null,

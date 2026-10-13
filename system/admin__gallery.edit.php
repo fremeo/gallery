@@ -10,7 +10,7 @@ $E = ['Id' => $id, 'Msg' => null, 'Info' => null, 'Error' => null];
 if (!$id || !preg_match('/^[A-Za-z0-9_-]+$/', $id)) {
 	$E['Id'] = null;
 	$E['Error'] = 'Kein gültiges Album gewählt.';
-	$D['GALLERY_EDIT'] = $E;
+	$R['GalleryEdit'] = $E; // Hilfswerte fürs Template ($D.R.GalleryEdit), $D enthält nur die Datenbankstruktur
 	return;
 }
 
@@ -140,7 +140,7 @@ $cover = $album['FileId'] ?? '';
 $linkId = $album['LinkId'] ?? '';
 $seoUrl = ($linkId && isset($C['Link'])) ? ($C['Link']->getById($linkId)['LINK']['D'][$linkId]['FromURL'] ?? '') : '';
 
-$D['GALLERY_EDIT'] = $E + [
+$R['GalleryEdit'] = $E + [
 	'Album'  => $album + ['Active' => 1],
 	'Images' => $images,
 	'Cover'  => $cover ? [$cover => ['FileId' => $cover]] : [],

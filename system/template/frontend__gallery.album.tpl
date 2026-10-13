@@ -1,11 +1,11 @@
-{** Frontend: Liste aller aktiven Alben (Daten: $D.GALLERY_ALBUMS aus frontend__gallery.album.php) **}
+{** Frontend: Liste aller aktiven Alben (Daten: $D.R.GalleryAlbums aus frontend__gallery.album.php) **}
 {block name="inner_body"}
 	<div class="container py-4">
 		<h1 class="h3 mb-4"><i class="fa-regular fa-images me-2"></i>Bildergalerie</h1>
 
-		{if $D.GALLERY_ALBUMS}
+		{if $D.R.GalleryAlbums}
 		<div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4">
-			{foreach $D.GALLERY_ALBUMS as $id => $a}
+			{foreach $D.R.GalleryAlbums as $id => $a}
 			<div class="col">
 				<a href="{$a.Url|escape}" class="album-card card h-100 text-decoration-none shadow-sm">
 					<div class="ratio ratio-4x3 bg-light rounded-top overflow-hidden">

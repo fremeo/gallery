@@ -1,6 +1,6 @@
 {block name="inner_body"}
-	{** Admin: Album bearbeiten (Daten aus admin__gallery.edit.php, $D.GALLERY_EDIT) **}
-	{$E = $D.GALLERY_EDIT}
+	{** Admin: Album bearbeiten (Daten aus admin__gallery.edit.php, $D.R.GalleryEdit) **}
+	{$E = $D.R.GalleryEdit}
 	{$A = $E.Album}
 	{$id = $E.Id}
 	{$list = "?R[ModuleId]=fremeo/gallery&R[Page]=admin__gallery.list"}

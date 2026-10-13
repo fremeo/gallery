@@ -1,6 +1,6 @@
-{** Frontend: ein Album (Daten: $D.GALLERY aus frontend__gallery.php) **}
+{** Frontend: ein Album (Daten: $D.R.Gallery aus frontend__gallery.php) **}
 {block name="inner_body"}
-	{$G = $D.GALLERY}
+	{$G = $D.R.Gallery}
 	<div class="container py-4">
 		<a href="{$G.Back|escape}" class="btn btn-link px-0 mb-2"><i class="fa-solid fa-arrow-left"></i> Alle Alben</a>
 

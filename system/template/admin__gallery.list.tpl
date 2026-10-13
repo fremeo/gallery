@@ -1,6 +1,6 @@
 {block name="inner_body"}
-	{** Admin: Alben-Liste (Daten aus admin__gallery.list.php, $D.GALLERY_ADMIN) **}
-	{$G = $D.GALLERY_ADMIN}
+	{** Admin: Alben-Liste (Daten aus admin__gallery.list.php, $D.R.GalleryAdmin) **}
+	{$G = $D.R.GalleryAdmin}
 	{$new_id = hash("crc32b", time())}
 	{$base = "?R[ModuleId]=fremeo/gallery&R[Page]=admin__gallery.list"}
 

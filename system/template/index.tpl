@@ -1,7 +1,7 @@
 <h1>Photo Gallery</h1>
-{if $D.GALLERY_LIST}
+{if $D.R.GalleryList}
   <ul>
-  {foreach from=$D.GALLERY_LIST key=id item=cat}
+  {foreach from=$D.R.GalleryList key=id item=cat}
     <li>
       <a href="?R[ModuleId]=fremeo/gallery&R[Page]=frontend__gallery&Id={$id}">{$cat.Title|escape}</a>
       <div>{$cat.DateFrom} - {$cat.DateTo}</div>

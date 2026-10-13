@@ -83,7 +83,7 @@ foreach ($show as $i => $p) {
 	$pageList[] = $p;
 }
 
-$D['GALLERY_ADMIN'] = [
+$R['GalleryAdmin'] = [
 	'Rows'     => $rows,
 	'Total'    => $total,
 	'Page'     => $page,

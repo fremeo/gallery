@@ -23,7 +23,7 @@ if ($id !== '') {
 if (!$A || empty($A['Active'])) {
 	if (!headers_sent()) http_response_code(404);
 	$G['NotFound'] = true;
-	$D['GALLERY'] = $G;
+	$R['Gallery'] = $G;
 	return;
 }
 
@@ -47,7 +47,7 @@ if (!empty($A['Password'])) {
 
 if (!$open) {
 	$G['Locked'] = true; // nur Titel und Passwortfeld, keine Bilder
-	$D['GALLERY'] = $G;
+	$R['Gallery'] = $G;
 	return;
 }
 
@@ -60,6 +60,6 @@ foreach ((array)($A['IMAGE']['D'] ?? []) as $img) {
 $G['DateFrom'] = $date($A['DateFrom'] ?? '');
 $G['DateTo']   = $date($A['DateTo'] ?? '');
 
-$D['GALLERY'] = $G;
+$R['Gallery'] = $G;
 
 return;

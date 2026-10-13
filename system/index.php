@@ -14,4 +14,4 @@ if (isset($C['fremeo/gallery']['CData'])) {
     }
 }
 
-$D['GALLERY_LIST'] = $list;
+$R['GalleryList'] = $list;

@@ -28,6 +28,6 @@ foreach ($albums as $id => $a) {
 	];
 }
 
-$D['GALLERY_ALBUMS'] = $rows;
+$R['GalleryAlbums'] = $rows;
 
 return;
