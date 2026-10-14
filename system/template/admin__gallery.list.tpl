@@ -6,7 +6,7 @@
 
 	<div class="d-flex justify-content-between align-items-center mb-3">
 		<h1 class="h4 mb-0"><i class="fa-solid fa-images me-1"></i> Bildergalerie <span class="badge text-bg-secondary">{$G.Total}</span></h1>
-		<a class="btn btn-primary btn-sm" href="?R[ModuleId]=fremeo/gallery&R[Page]=admin__gallery.edit&R[Id]={$new_id}&D[ALBUM][D][{$new_id}][Active]=1"><i class="fa-solid fa-plus"></i> Neues Album</a>
+		<a class="btn btn-primary btn-sm" href="admin/fremeo/gallery/edit?R[Id]={$new_id}&D[ALBUM][D][{$new_id}][Active]=1"><i class="fa-solid fa-plus"></i> Neues Album</a>
 	</div>
 
 	{if $G.Rows}
@@ -35,13 +35,13 @@
 								<span class="text-muted"><i class="fa-regular fa-image"></i></span>
 							{/if}
 						</td>
-						<td><a href="?R[ModuleId]=fremeo/gallery&R[Page]=admin__gallery.edit&R[Id]={$id}">{$row.Title|default:'(ohne Titel)'|escape}</a></td>
+						<td><a href="	admin/fremeo/gallery/edit?R[Id]={$id}">{$row.Title|default:'(ohne Titel)'|escape}</a></td>
 						<td class="text-center">{input p=['name'=>"D[ALBUM][D][{$id}][Active]", 'value'=>$row.Active, 'type'=>'checkbox']}</td>
 						<td>{$row.DateFrom|escape}</td>
 						<td>{$row.DateTo|escape}</td>
 						<td class="text-center">{if $row.Locked}<i class="fa-solid fa-lock text-warning" title="Passwortgeschützt"></i>{/if}</td>
 						<td class="text-end text-nowrap">
-							<a class="btn btn-outline-primary btn-sm" href="?R[ModuleId]=fremeo/gallery&R[Page]=admin__gallery.edit&R[Id]={$id}" title="Bearbeiten"><i class="fa-solid fa-pen"></i></a>
+							<a class="btn btn-outline-primary btn-sm" href="admin/fremeo/gallery/edit?R[Id]={$id}" title="Bearbeiten"><i class="fa-solid fa-pen"></i></a>
 							<input type="hidden" name="D[ALBUM][D][{$id}][__DELETE__]" value="1" disabled>
 							<button type="button" class="btn btn-outline-danger btn-sm" title="Löschen" data-title="{$row.Title|default:'(ohne Titel)'|escape}" onclick="if (confirm('Album \'' + this.dataset.title + '\' mit allen Bildern wirklich löschen?\nDas Löschen erfolgt erst beim Speichern.')) { var r = this.closest('tr'); r.querySelector('input[name$=\'[__DELETE__]\']').disabled = false; r.classList.add('d-none'); }"><i class="fa-solid fa-trash"></i></button>
 						</td>

@@ -43,6 +43,12 @@ if (($D['ACTION'] ?? null) == 'save') {
 	$U = ['ALBUM' => ['D' => [$id => array_intersect_key($post, array_flip(['Active', 'Title', 'DateFrom', 'DateTo', 'Password', 'FileId']))]]];
 	$row = &$U['ALBUM']['D'][$id];
 
+	// Datum immer als Unix-Timestamp speichern (Zahl bleibt Zahl, Text wie 2026-10-14 oder 14.10.2026 wird umgerechnet, leer/ungültig = leer)
+	foreach (['DateFrom', 'DateTo'] as $k) {
+		if (!array_key_exists($k, $row)) continue;
+		$v = trim((string)$row[$k]);
+		$row[$k] = ($v !== '' && ctype_digit($v)) ? (int)$v : (($ts = $v !== '' ? strtotime($v) : false) !== false ? $ts : '');
+	}
 	// Sortierung und Löschen: nur Bilder, die zu diesem Album gehören
 	$deleted = [];
 	foreach ((array)($post['IMAGE']['D'] ?? []) as $imgId => $img) {
@@ -64,6 +70,24 @@ if (($D['ACTION'] ?? null) == 'save') {
 	}
 
 	// Neue Bilder (keine Begrenzung)
+	// Aufnahmedatum eines Bildes (ALBUM.IMAGE.DateTimeOriginal, Unix-Timestamp), nur aus den Bilddaten:
+	// 1. EXIF DateTimeOriginal bzw. DateTimeDigitized aus der gespeicherten Datei,
+	// 2. sonst das Dateidatum, das der Browser mitschickt (R[FileModified] = {"dateiname.jpg": lastModified in ms}).
+	// Gibt es beides nicht, wird kein Datum gespeichert (kein Upload-Zeitpunkt).
+	$modified = json_decode((string)($R['FileModified'] ?? ''), true);
+	$taken = function (string $path, array $info) use ($modified): ?int {
+		if (function_exists('exif_read_data')) {
+			$exif = @exif_read_data($path, 'EXIF'); // liest JPEG und TIFF, bei anderen Formaten false
+			foreach (['DateTimeOriginal', 'DateTimeDigitized'] as $key) {
+				$value = is_array($exif) ? ($exif[$key] ?? null) : null;
+				if (is_string($value) && !str_starts_with($value, '0000') && ($date = \DateTime::createFromFormat('Y:m:d H:i:s', $value))) {
+					return $date->getTimestamp();
+				}
+			}
+		}
+		$ms = is_array($modified) ? ($modified[strtolower($info['Name'] . '.' . $info['Extension'])] ?? null) : null;
+		return (is_int($ms) || is_float($ms)) && $ms > 0 ? intdiv((int)$ms, 1000) : null;
+	};
 	if (array_filter((array)($_FILES['images']['tmp_name'] ?? []))) {
 		$sort = $images ? max(array_map(fn($i) => (int)($i['Sort'] ?? 0), $images)) + 1 : 0;
 		$uploaded = $File->add($_FILES['images'], [...$imageExt, 'zip']);
@@ -86,6 +110,9 @@ if (($D['ACTION'] ?? null) == 'save') {
 		foreach ($uploaded as $fid => $info) {
 			if (isset($images[$fid])) continue; // schon im Album
 			$row['IMAGE']['D'][$fid] = ['Active' => 1, 'FileId' => $fid, 'Sort' => $sort++];
+			if (($date = $taken($File->path($fid, $info['Extension']), $info)) !== null) {
+				$row['IMAGE']['D'][$fid]['DateTimeOriginal'] = $date;
+			}
 			$images[$fid] = [];
 		}
 	}

@@ -3,7 +3,7 @@
 	{$E = $D.R.GalleryEdit}
 	{$A = $E.Album}
 	{$id = $E.Id}
-	{$list = "?R[ModuleId]=fremeo/gallery&R[Page]=admin__gallery.list"}
+	{$list = "admin/fremeo/gallery/list"}
 
 	<div class="d-flex justify-content-between align-items-center mb-3">
 		<h1 class="h4 mb-0"><i class="fa-solid fa-images me-1"></i> Album bearbeiten</h1>
@@ -83,12 +83,22 @@
 		]}
 
 		<div class="mt-4">
+			<input type="hidden" name="R[FileModified]" id="fileModified" value="">
 			<button type="submit" class="btn btn-primary">Speichern</button>
 			<a class="btn btn-outline-secondary" href="{$list}">Abbrechen</a>
 		</div>
 	</form>
 	{literal}
 	<script>
+		// Dateidatum der gewählten Bilder an den Server schicken: Fallback für Bilder ohne EXIF-Aufnahmedatum (z.B. PNG, WebP, Screenshots)
+		$(function() {
+			var modified = {}, $field = $('#fileModified');
+			$field.closest('form').on('change', 'input.img-file', function() {
+				$.each(this.files, function(i, f) { modified[f.name.toLowerCase()] = f.lastModified; });
+				$field.val(JSON.stringify(modified));
+			});
+		});
+
 		// SEO-Link live aus dem Titel vorschlagen, solange das Feld leer / unverändert automatisch ist (Server normalisiert endgültig, siehe Link::normalize)
 		$(function() {
 			var map = {'ä':'a','ö':'o','ü':'u','ß':'ss','é':'e','è':'e','ê':'e','à':'a','â':'a','á':'a','ô':'o','ó':'o','û':'u','ú':'u','î':'i','í':'i','ç':'c','ñ':'n'};

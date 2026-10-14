@@ -5,8 +5,8 @@ $Pattern = [];
 
 $Pattern['ALBUM'] = [
     'Active'    => ['Type' => 'checkbox'],
-    'DateFrom'  => ['Type' => 'text'],
-    'DateTo'    => ['Type' => 'text'],
+    'DateFrom'  => ['Type' => 'number'], // Unix-Timestamp
+    'DateTo'    => ['Type' => 'number'], // Unix-Timestamp
     'Title'     => ['Type' => 'text'],
     'Password'  => ['Type' => 'text'],
     'FileId'    => ['Type' => 'id'],
@@ -16,7 +16,8 @@ $Pattern['ALBUM'] = [
 $Pattern['ALBUM']['D']['IMAGE'] = [
             'Active'    => ['Type' => 'checkbox'],
             'FileId'    => ['Type' => 'id'],
-            'Sort'      => ['Type' => 'number']
+            'Sort'      => ['Type' => 'number'],
+            'DateTimeOriginal' => ['Type' => 'number'] // Aufnahmedatum (EXIF) als Unix-Timestamp, ohne EXIF der Upload-Zeitpunkt
 ];
 
 

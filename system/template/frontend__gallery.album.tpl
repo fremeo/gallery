@@ -20,7 +20,7 @@
 					<div class="card-body">
 						<h2 class="h5 card-title text-body mb-1">{if $a.Locked}<i class="fa-solid fa-lock text-warning me-1" title="Passwortgeschützt"></i>{/if}{$a.Title|default:'(ohne Titel)'|escape}</h2>
 						{if $a.DateFrom || $a.DateTo}
-							<p class="card-text small text-secondary mb-0"><i class="fa-regular fa-calendar me-1"></i>{$a.DateFrom|escape}{if $a.DateTo} &ndash; {$a.DateTo|escape}{/if}</p>
+							<p class="card-text small text-secondary mb-0"><i class="fa-regular fa-calendar me-1"></i>{if $a.DateFrom}{date('d.m.Y', (int)$a.DateFrom)}{/if}{if $a.DateTo} &ndash; {date('d.m.Y', (int)$a.DateTo)}{/if}</p>
 						{/if}
 					</div>
 				</a>

@@ -1,6 +1,7 @@
-{** Frontend: ein Album (Daten: $D.R.Gallery aus frontend__gallery.php) **}
+{** Frontend: ein Album (Zustand: $D.R.Gallery, Albumdaten: $D.ALBUM.D.<Id> aus frontend__gallery.php) **}
 {block name="inner_body"}
 	{$G = $D.R.Gallery}
+	{$A = $D.ALBUM.D[$G.Id]}
 	<div class="container py-4">
 		<a href="{$G.Back|escape}" class="btn btn-link px-0 mb-2"><i class="fa-solid fa-arrow-left"></i> Alle Alben</a>
 
@@ -13,7 +14,7 @@
 					<div class="card shadow-sm">
 						<div class="card-body text-center">
 							<i class="fa-solid fa-lock fs-1 text-warning mb-3"></i>
-							<h1 class="h4">{$G.Title|default:'(ohne Titel)'|escape}</h1>
+							<h1 class="h4">{$A.Title|default:'(ohne Titel)'|escape}</h1>
 							<p class="text-secondary">Dieses Album ist passwortgeschützt.</p>
 							{if $G.Error}<div class="alert alert-danger py-2">{$G.Error|escape}</div>{/if}
 							<form method="post">
@@ -28,25 +29,33 @@
 			</div>
 
 		{else}
-			<h1 class="h3 mb-1">{$G.Title|default:'(ohne Titel)'|escape}</h1>
+			{* Welche Bilder angezeigt werden, bestimmt das Template: nur aktive Bilder mit Datei (Active fehlt = aktiv) *}
+			{$total = 0}
+			{foreach $A.IMAGE.D as $img}{if ($img.Active|default:1) && $img.FileId}{$total = $total + 1}{/if}{/foreach}
+			<h1 class="h3 mb-1">{$A.Title|default:'(ohne Titel)'|escape}</h1>
 			<p class="text-secondary mb-4">
-				{if $G.DateFrom || $G.DateTo}<i class="fa-regular fa-calendar me-1"></i>{$G.DateFrom|escape}{if $G.DateTo} &ndash; {$G.DateTo|escape}{/if} &middot; {/if}
-				{count($G.Images)} Bilder
+				{if ($A.DateFrom|default:'') || ($A.DateTo|default:'')}<i class="fa-regular fa-calendar me-1"></i>{if $A.DateFrom|default:''}{date('d.m.Y', (int)$A.DateFrom)}{/if}{if $A.DateTo|default:''} &ndash; {date('d.m.Y', (int)$A.DateTo)}{/if} &middot; {/if}
+				{$total} Bilder
 			</p>
 
-			{if $G.Images}
+			{if $total > 0}
 			<div class="gallery-grid" id="gallery-grid">
-				{foreach $G.Images as $img}
-				<a href="file/{$img.FileId}_2000x2000.avif" class="gallery-item glightbox3{if $img@index >= 60} d-none gallery-more{/if}" data-download="file/{$img.FileId}_2000x2000.jpg" data-gallery="gallery1">
+				{$shown = 0}
+				{foreach $A.IMAGE.D as $img}
+				{if ($img.Active|default:1) && $img.FileId}
+				<a href="file/{$img.FileId}_2000x2000.avif" class="gallery-item glightbox3{if $shown >= 60} d-none gallery-more{/if}" data-download="file/{$img.FileId}_2000x2000.jpg" data-gallery="gallery1">
 					<picture>
 						<source srcset="file/{$img.FileId}_200x200.avif" type="image/avif">
 						<source srcset="file/{$img.FileId}_200x200.webp" type="image/webp">
 						<img src="file/{$img.FileId}_200x200.png" alt="" loading="lazy">
 					</picture>
+					{if $img.DateTimeOriginal|default:''}<span class="gallery-date">{date('d.m.Y H:i:s', (int)$img.DateTimeOriginal)}</span>{/if}
 				</a>
+				{$shown = $shown + 1}
+				{/if}
 				{/foreach}
 			</div>
-			{if count($G.Images) > 60}
+			{if $total > 60}
 			<div class="text-center mt-4">
 				<button type="button" class="btn btn-outline-primary" id="gallery-more"><i class="fa-solid fa-angles-down me-1"></i> Weitere Bilder anzeigen <span class="badge text-bg-secondary" id="gallery-rest"></span></button>
 			</div>
@@ -66,6 +75,7 @@
 				.gallery-item::after { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0); transition: background .3s; }
 				.gallery-item:hover img { transform: scale(1.08); }
 				.gallery-item:hover::after { background: rgba(0,0,0,.15); }
+				.gallery-date { position: absolute; right: 4px; bottom: 2px; z-index: 1; pointer-events: none; font-size: .65rem; line-height: 1.2; color: #000; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0 -1px 0 #fff, 0 1px 0 #fff, -1px 0 0 #fff, 1px 0 0 #fff; }
 				@media (min-width: 992px) { .gallery-grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; } }
 				.gdownload-custom { position: absolute; right: 75px; top: 15px; z-index: 99999; width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; color: #fff; opacity: .7; transition: opacity .2s; }
 				.gdownload-custom:hover { opacity: 1; }

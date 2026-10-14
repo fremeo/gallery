@@ -12,17 +12,16 @@ $albums = (array)($d['ALBUM']['D'] ?? []);
 $linkIds = array_values(array_filter(array_column($albums, 'LinkId')));
 $links = ($linkIds && isset($C['Link'])) ? ($C['Link']->getById($linkIds)['LINK']['D'] ?? []) : [];
 
-// Datum: Unix-Timestamps als dd.mm.yyyy, sonst Text unverändert
-$date = fn($v) => ($v !== null && $v !== '' && ctype_digit((string)$v)) ? date('d.m.Y', (int)$v) : (string)$v;
+// Datum: Unix-Timestamps (roh), die Formatierung erfolgt im Template
 
 $rows = [];
 foreach ($albums as $id => $a) {
 	$locked = !empty($a['Password']);
 	$rows[$id] = [
 		'Title'    => $a['Title'] ?? '',
-		'DateFrom' => $date($a['DateFrom'] ?? ''),
-		'DateTo'   => $date($a['DateTo'] ?? ''),
-		'FileId'   => $date($a['FileId'] ?? ''),
+		'DateFrom' => ($a['DateFrom'] ?? 0),
+		'DateTo'   => ($a['DateTo'] ?? 0),
+		'FileId'   => $a['FileId'] ?? '',
 		'Locked'   => $locked,
 		'Url'      => ($links[$a['LinkId'] ?? '']['FromURL'] ?? '') ?: "?R[Page]=frontend__gallery&R[ModuleId]=fremeo/gallery&R[Id]={$id}",
 	];
