@@ -34,7 +34,7 @@ $inUse = function ($fileId) use ($DB, $id) {
 	return false;
 };
 
-if (($D['ACTION'] ?? null) == 'save') {
+if (($R['ACTION'] ?? null) == 'save') {
 	$post     = $D['ALBUM']['D'][$id] ?? [];
 	$old      = $load();
 	$images   = (array)($old['IMAGE']['D'] ?? []);

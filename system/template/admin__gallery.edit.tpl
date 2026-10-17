@@ -16,7 +16,7 @@
 
 	{if $id}
 	<form method="post" enctype="multipart/form-data">
-		<input type="hidden" name="D[ACTION]" value="save">
+		<input type="hidden" name="R[ACTION]" value="save">
 
 		<div class="row g-3">
 			<div class="col-md-4 d-flex align-items-end">

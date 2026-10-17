@@ -10,7 +10,12 @@
 				<a href="{$a.Url|escape}" class="album-card card h-100 text-decoration-none shadow-sm">
 					<div class="ratio ratio-4x3 bg-light rounded-top overflow-hidden">
 						{if $a.FileId}
-							<img src="file/{$a.FileId}_480x360.webp" alt="{$a.Title|escape}" class="object-fit-cover" loading="lazy">
+							<picture class="ratio">
+								<source srcset="file/{$a.FileId}_480x360.avif" type="image/avif">
+								<source srcset="file/{$a.FileId}_480x360.webp" type="image/webp">
+								<img src="file/{$a.FileId}_480x360.jpg" alt="{$a.Title|escape}" class="object-fit-cover" loading="lazy">
+							</picture>
+							
 						{else}
 							<div class="d-flex align-items-center justify-content-center text-secondary fs-1">
 								{if $a.Locked}<i class="fa-solid fa-lock"></i>{else}<i class="fa-regular fa-image"></i>{/if}
