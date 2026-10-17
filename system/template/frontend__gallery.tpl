@@ -43,7 +43,7 @@
 				{$shown = 0}
 				{foreach $A.IMAGE.D as $img}
 				{if ($img.Active|default:1) && $img.FileId}
-				<a href="file/{$img.FileId}_2000x2000.avif" class="gallery-item glightbox3{if $shown >= 60} d-none gallery-more{/if}" data-download="file/{$img.FileId}.jpg" data-gallery="gallery1">
+				<a href="file/{$img.FileId}_2000.avif" class="gallery-item glightbox3{if $shown >= 60} d-none gallery-more{/if}" data-download="file/{$img.FileId}.jpg" data-gallery="gallery1">
 					<picture>
 						<source srcset="file/{$img.FileId}_200x200.avif" type="image/avif">
 						<source srcset="file/{$img.FileId}_200x200.webp" type="image/webp">
