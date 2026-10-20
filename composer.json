@@ -6,7 +6,7 @@
   "keywords": ["fremeo", "fremeo-module", "gallery", "image"],
   "require": {
     "php": "^8.0",
-    "fremeo/core": "^v0.0"
+    "fremeo/core": ">=0.1 <1.0"
   },
   "prefer-stable": true,
   "autoload": {

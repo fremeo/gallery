@@ -20,16 +20,31 @@ $Pattern['ALBUM']['D']['IMAGE'] = [
             'DateTimeOriginal' => ['Type' => 'number'] // Aufnahmedatum (EXIF) als Unix-Timestamp, ohne EXIF der Upload-Zeitpunkt
 ];
 
-
+/*
 $C['fremeo/gallery']['CData'] = new \phploader\CData([
     'DB' => [
         'FILENAME' => PROJECT_ROOT . 'data/fremeo~gallery/data.db',
         'FILENAME_C' => PROJECT_ROOT . 'data_c/fremeo~gallery/data.db'
     ]
-]);
-
+]);*//*
+$C->set('CData', new \phploader\CData([
+    'DB' => [
+        'FILENAME' => PROJECT_ROOT . 'data/fremeo~gallery/data.db',
+        'FILENAME_C' => PROJECT_ROOT . 'data_c/fremeo~gallery/data.db'
+    ]
+]), 'fremeo/gallery');
+*/
 // register patterns with keys
 // register module-specific patterns (core will register global patterns such as FILE and LINK)
+/*
+if (!isset($C['fremeo/gallery']['CData'])) {
+    $C->set('CData', new \phploader\CData([
+        'DB' => [
+            'FILENAME' => PROJECT_ROOT . 'data/fremeo~gallery/data.db',
+            'FILENAME_C' => PROJECT_ROOT . 'data_c/fremeo~gallery/data.db'
+        ]
+    ]), 'fremeo/gallery');
+}*/
 $C['fremeo/gallery']['CData']->registerPattern([
     'ALBUM' => $Pattern['ALBUM']
 ]);
