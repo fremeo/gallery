@@ -64,7 +64,7 @@
 					'mainname'=>"D[ALBUM][D][{$id}][FileId]",
 					'main'=>$A.FileId,
 					'size'=>96,
-					'help'=>'Leer = erstes Bild des Albums'
+					'help'=>'Leer = kein Startbild'
 				]}
 			</div>
 		</div>

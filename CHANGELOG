@@ -1,5 +1,6 @@
 # Changelog
 #0.0.6 (unveroeffentlicht)
+! Startbild optional: leeres oder entferntes Startbild nicht mehr automatisch durch das erste Album-Bild ersetzen; unveraendertes Startbild bei Teilupdates erhalten.
 ! Core-Mindestabhaengigkeit von >=0.1 auf >=0.0.8 korrigiert: Core 0.0.8 erfuellt die benoetigten Funktionen; die bisherige Grenze verlangte irrtuemlich mindestens 0.1.0 und blockierte Gallery-Updates.
 
 #0.0.5

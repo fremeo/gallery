@@ -76,7 +76,7 @@ class AdminEditUploadTest extends TestCase {
 	}
 
 	/** Lädt Dateien [Name => Inhalt] in das Album hoch (wie ein Klick auf "Speichern") und gibt ALBUM.IMAGE.D zurück. */
-	private function upload(array $files, ?array $modified = null): array {
+	private function upload(array $files, ?array $modified = null, array $post = []): array {
 		$_FILES = ['images' => ['name' => [], 'tmp_name' => [], 'error' => [], 'size' => []]];
 		foreach ($files as $name => $content) {
 			$tmp = "{$this->tmp}/" . md5($name);
@@ -87,10 +87,10 @@ class AdminEditUploadTest extends TestCase {
 			$_FILES['images']['size'][] = strlen($content);
 		}
 
-		(function () use ($modified) {
+		(function () use ($modified, $post) {
 			$C = &$this->C;
 			$R = ['Id' => 'album1', 'ACTION' => 'save'] + ($modified === null ? [] : ['FileModified' => json_encode($modified)]);
-			$D = ['ACTION' => 'save', 'ALBUM' => ['D' => ['album1' => ['Active' => 1, 'Title' => 'Test']]]];
+			$D = ['ACTION' => 'save', 'ALBUM' => ['D' => ['album1' => $post + ['Active' => 1, 'Title' => 'Test']]]];
 			include __DIR__ . '/../system/admin__gallery.edit.php';
 		})();
 
@@ -98,6 +98,27 @@ class AdminEditUploadTest extends TestCase {
 		$f['ALBUM']['IMAGE']['O'][0]['Sort'] = 'ASC'; // Unterdaten (Bilder) müssen angefordert werden
 		$this->db->get_object($d, $f);
 		return (array)($d['ALBUM']['D']['album1']['IMAGE']['D'] ?? []);
+	}
+
+	public function testCoverRemainsOptionalAndClearingItDoesNotSelectAnAlbumImage(): void {
+		$images = $this->upload(['one.png' => $this->png(0xFF0000)]);
+		$filter['ALBUM']['W'][0]['ID'] = 'album1';
+		$this->db->get_object($data, $filter);
+		$this->assertEmpty($data['ALBUM']['D']['album1']['FileId'] ?? '');
+		$cover = array_key_first($images);
+		$this->upload([], null, ['FileId' => $cover]);
+		$this->upload([]);
+		$data = [];
+		$this->db->get_object($data, $filter);
+		$this->assertSame($cover, $data['ALBUM']['D']['album1']['FileId']);
+		$this->upload([], null, ['FileId' => '']);
+		$data = [];
+		$this->db->get_object($data, $filter);
+		$this->assertEmpty($data['ALBUM']['D']['album1']['FileId']);
+		$this->assertCount(1, $this->upload(['two.png' => $this->png(0xFF0000)]));
+		$data = [];
+		$this->db->get_object($data, $filter);
+		$this->assertEmpty($data['ALBUM']['D']['album1']['FileId']);
 	}
 
 	public function testExifDateIsReadFromImage(): void {

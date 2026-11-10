@@ -98,7 +98,7 @@ if (($R['ACTION'] ?? null) == 'save') {
 	}
 
 	// Startbild: ein gelöschtes Album-Bild ist kein Startbild mehr, eine neue Datei ersetzt es
-	if (in_array($row['FileId'] ?? '', $deleted, true)) $row['FileId'] = '';
+	if (in_array($row['FileId'] ?? $oldCover, $deleted, true)) $row['FileId'] = '';
 	if (array_filter((array)($_FILES['cover']['tmp_name'] ?? []))) {
 		$cover = array_key_first($File->add($_FILES['cover'], $imageExt));
 		if (!$cover) throw new RuntimeException('Das Startbild konnte nicht gespeichert werden.');
@@ -162,9 +162,7 @@ if (($R['ACTION'] ?? null) == 'save') {
 		}
 	}
 
-	// Ohne Startbild: erstes Bild des Albums
-	if (empty($row['FileId']) && $images) $row['FileId'] = array_key_first($images);
-	$newCover = $row['FileId'] ?? '';
+	$newCover = $row['FileId'] ?? $oldCover;
 
 	// SEO-Link: Eingabe leer = automatisch "gallery/titel" (nur wenn noch kein Link existiert), sonst anlegen bzw. umbenennen
 	if (!$uploadOnly && isset($C['Link'])) {
