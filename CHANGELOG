@@ -1,5 +1,8 @@
 # Changelog
-#0.0.5 (unveroeffentlicht)
+#0.0.6 (unveroeffentlicht)
+! Core-Mindestabhaengigkeit von >=0.1 auf >=0.0.8 korrigiert: Core 0.0.8 erfuellt die benoetigten Funktionen; die bisherige Grenze verlangte irrtuemlich mindestens 0.1.0 und blockierte Gallery-Updates.
+
+#0.0.5
 ! Frontend-Album- und Bildvorschauen ohne fest eingebrannte weisse Raender: proportional skalierte Bilder auf theme-abhaengiger Hintergrundfarbe, passend zu Dark/Light Mode.
 ~ Upload-Zaehler mittig statt des Plus-Symbols in der Hinzufuegen-Kachel (z.B. 12/100), mit Fortschrittsbalken am unteren Rand. Der Stand steigt erst nach bestaetigter Speicherung.
 ! Upload ueber echtes SEO-Routing getestet; benoetigt die korrigierte HTTP-Statussetzung des Cores fuer unverfaelschte JSON-Antworten.
