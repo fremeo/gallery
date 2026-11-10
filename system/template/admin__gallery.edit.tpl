@@ -77,9 +77,11 @@
 			'sortable'=>1,
 			'deletable'=>1,
 			'upload'=>'images',
+			'queue'=>1,
+			'upload_token'=>$E.UploadToken,
 			'accept'=>'.jpg,.jpeg,.png,.gif,.webp,.avif,.zip',
 			'size'=>64,
-			'help'=>'Ziehen = sortieren, Papierkorb = entfernen, Plus = Bilder hinzufügen (Upload beim Speichern)'
+			'help'=>'Ziehen = sortieren, Papierkorb = entfernen, Plus = Bilder hinzufügen (beim Speichern einzeln hochgeladen)'
 		]}
 
 		<div class="mt-4">

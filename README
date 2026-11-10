@@ -4,12 +4,39 @@ Das Gallery-Modul ist eine flexible Erweiterung zur Verwaltung und visuellen Dar
 
 ### Features
 * **Unbegrenzte Alben-Struktur:** Erstellen Sie beliebig viele, voneinander unabhängige Fotoalben.
-* **Massen-Upload:** Unter jedem Album können beliebig viele Fotodateien hochgeladen und verwaltet werden.
+* **Massen-Upload:** Unter jedem Album können beliebig viele Fotodateien hochgeladen und verwaltet werden. Beim Speichern werden die ausgewählten Bilder nacheinander übertragen, damit PHPs Limit für Dateien je Anfrage nicht die Auswahl abschneidet.
 * **Passwortschutz & Privatsphäre:** Alben können auf Wunsch mit einem individuellen Passwort geschützt werden, um sensible Inhalte vor unbefugtem Zugriff zu sichern.
 * **Gästezugang & Berechtigungsstufen:** Inhalte können flexibel entweder öffentlich für alle Gäste oder exklusiv für benutzerdefinierte, zugangsberechtigte Personengruppen freigeschaltet werden.
 * **Download-Funktion:** Integrierte Möglichkeit für berechtigte Frontend-Besucher, die Bilder direkt herunterzuladen.
 
 ### System-Integration
+Frontend-Vorschaubilder verwenden eine einzelne maximale Kantenlaenge statt
+einer weiss aufgefuellten Bildflaeche. Die Kacheln zeigen das vollstaendige Bild
+mit `object-fit: contain` auf `--bs-tertiary-bg`, passend zum hellen/dunklen Theme.
+
 Das Modul gliedert sich nahtlos in die bestehende Struktur ein:
 * **Daten-Isolierung:** Alle hochgeladenen Bilddateien werden isoliert im globalen `data/`-Verzeichnis des Projekts abgelegt.
 * **Template-Vererbung:** Die Frontend-Darstellung nutzt das Smarty 4 Vererbungsprinzip (z. B. über `index__gallery.tpl`), wodurch das Design extrem flexibel an das Haupt-Template angepasst oder von anderen Modulen überlagert werden kann.
+
+### Upload-Warteschlange
+Auf der Album-Bearbeitungsseite aktiviert das gemeinsame `image`-Feld aus dem
+Core mit `queue=1` die Warteschlange. Speichern sichert zuerst die Albumdaten
+und ein gegebenenfalls gewähltes Startbild, danach jede ausgewählte Bild- oder
+ZIP-Datei in einer eigenen Anfrage. Der Bilder-Container zeigt den bestaetigten
+Fortschritt als fertig/gesamt (z.B. 12/100) mittig in der Plus-Kachel statt des
+Plus-Symbols. Ein schmaler Balken am unteren Kachelrand zeigt denselben
+bestaetigten Fortschritt; Dateinamen und Fehlermeldungen stehen ausserhalb.
+Sortierung, bestehendes Startbild und EXIF-/Browser-Aufnahmedatum
+bleiben erhalten; identische Dateien werden nicht doppelt im Album eingetragen.
+
+Jede Anfrage bleibt durch die Admin-Berechtigung und ein Sitzungstoken geschützt.
+Die Seite bestätigt die tatsächlich verarbeitete Dateianzahl als JSON. Bei
+Fehlern hält der Upload an; erneutes Speichern setzt beim fehlgeschlagenen
+Eintrag fort, ohne bestätigte Dateien oder die Albumdaten nochmals zu senden.
+Währenddessen bleiben die Formulardaten gesperrt; Verlassen der Seite warnt
+vor dem Verlust der noch nicht übertragenen Warteschlange. Bereits hochgeladene
+Bilder bleiben gespeichert. Nach vollständigem Upload wird die Seite neu geladen.
+
+Das Limit je einzelner Datei (`upload_max_filesize`) und das Anfragegrößenlimit
+(`post_max_size`) gelten weiterhin. Eine einzelne zu große Datei muss verkleinert
+oder das Serverlimit angepasst werden; Dateien werden nicht in Blöcke zerlegt.

@@ -2,6 +2,7 @@
 namespace fremeo\gallery\tests;
 
 use fremeo\core\File;
+use fremeo\core\Container;
 use PHPUnit\Framework\TestCase;
 use phploader\CData;
 use Symfony\Component\Filesystem\Filesystem;
@@ -14,7 +15,7 @@ class AdminEditUploadTest extends TestCase {
 
 	private string $tmp;
 	private string $oldCwd;
-	private array $C;
+	private Container $C;
 	private CData $db;
 
 	protected function setUp(): void {
@@ -34,10 +35,12 @@ class AdminEditUploadTest extends TestCase {
 			],
 		]);
 
-		$this->C = ['Filesystem' => new Filesystem(), 'fremeo/gallery' => ['CData' => $this->db]];
-		$this->C['fremeo/gallery']['File'] = new class($this->C, 'fremeo/gallery') extends File {
+		$this->C = new Container();
+		$this->C->set('Filesystem', new Filesystem());
+		$this->C->set('CData', $this->db, 'fremeo/gallery');
+		$this->C->set('File', new class($this->C, 'fremeo/gallery') extends File {
 			protected function isUpload(string $tmp): bool { return is_file($tmp); } // in Tests gibt es keine echten HTTP-Uploads
-		};
+		}, 'fremeo/gallery');
 	}
 
 	protected function tearDown(): void {
@@ -86,7 +89,7 @@ class AdminEditUploadTest extends TestCase {
 
 		(function () use ($modified) {
 			$C = &$this->C;
-			$R = ['Id' => 'album1'] + ($modified === null ? [] : ['FileModified' => json_encode($modified)]);
+			$R = ['Id' => 'album1', 'ACTION' => 'save'] + ($modified === null ? [] : ['FileModified' => json_encode($modified)]);
 			$D = ['ACTION' => 'save', 'ALBUM' => ['D' => ['album1' => ['Active' => 1, 'Title' => 'Test']]]];
 			include __DIR__ . '/../system/admin__gallery.edit.php';
 		})();
@@ -131,5 +134,69 @@ class AdminEditUploadTest extends TestCase {
 		$images = $this->upload(['kaputt.jpg' => $this->jpegWithExif('0000:00:00 00:00:00', 0x808080)]);
 
 		$this->assertArrayNotHasKey('DateTimeOriginal', array_values($images)[0]);
+	}
+
+	private function queueRequest(array $files, array $request = [], array $data = []): array {
+		$this->db->get_Pattern($pattern);
+		$script = '<?php require ' . var_export(__DIR__ . '/bootstrap.php', true) . '; chdir(' . var_export($this->tmp, true) . ');'
+			. '$db = new \phploader\CData(["DB"=>["FILENAME"=>"data.db","FILENAME_C"=>"data_c.db"]]);'
+			. '$db->registerPattern(' . var_export($pattern['PATTERN'], true) . ');'
+			. '$C = new \fremeo\core\Container(); $C->set("Filesystem",new \Symfony\Component\Filesystem\Filesystem()); $C->set("CData",$db,"fremeo/gallery");'
+			. '$C->set("File",new class($C,"fremeo/gallery") extends \fremeo\core\File { protected function isUpload(string $tmp): bool { return is_file($tmp); } },"fremeo/gallery");'
+			. '$_SESSION=["GalleryUploadToken"=>"test-token"]; $_SERVER["REQUEST_METHOD"]="POST"; $D=' . var_export($data, true) . ';'
+			. '$R=' . var_export($request + ['Id' => 'album1', 'ACTION' => 'save', 'UploadQueue' => '1', 'UploadOnly' => '1', 'UploadToken' => 'test-token'], true) . ';'
+			. '$_FILES=' . var_export($files, true) . '; include ' . var_export(__DIR__ . '/../system/admin__gallery.edit.php', true) . ';';
+		$file = $this->tmp . '/queue-request.php';
+		file_put_contents($file, $script);
+		$process = proc_open([PHP_BINARY, $file], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+		$this->assertIsResource($process);
+		$output = stream_get_contents($pipes[1]);
+		$error = stream_get_contents($pipes[2]);
+		fclose($pipes[1]);
+		fclose($pipes[2]);
+		$this->assertSame(0, proc_close($process), $error);
+		return json_decode($output, true, 512, JSON_THROW_ON_ERROR);
+	}
+
+	public function testQueuedUploadPreservesMetadataCoverAndOrderAndRejectsMissingFiles(): void {
+		$images = $this->upload(['original.png' => $this->png(0xFF0000)]);
+		$cover = array_key_first($images);
+		$update = ['ALBUM' => ['D' => ['album1' => ['Title' => 'Unchanged', 'FileId' => $cover]]]];
+		$this->db->set_object($update);
+		$tmp = $this->tmp . '/queued.png';
+		file_put_contents($tmp, $this->png(0x00FF00));
+		$files = ['images' => ['name' => ['queued.png'], 'tmp_name' => [$tmp], 'error' => [UPLOAD_ERR_OK], 'size' => [filesize($tmp)]]];
+		$this->assertSame(['saved' => true, 'received' => 1], $this->queueRequest($files, ['FileModified' => '{"queued.png":1600000000123}']));
+		// Eine verlorene Antwort darf beim erneuten Senden kein zweites Bild erzeugen.
+		$this->assertSame(['saved' => true, 'received' => 1], $this->queueRequest($files));
+		$f = ['ALBUM' => ['W' => [0 => ['ID' => 'album1']], 'IMAGE' => []]];
+		$this->db->get_object($stored, $f);
+		$album = $stored['ALBUM']['D']['album1'];
+		$this->assertSame('Unchanged', $album['Title']);
+		$this->assertSame($cover, $album['FileId']);
+		$this->assertCount(2, $album['IMAGE']['D']);
+		$this->assertSame(1, (int)$album['IMAGE']['D'][md5_file($tmp)]['Sort']);
+		$this->assertSame(1600000000, (int)$album['IMAGE']['D'][md5_file($tmp)]['DateTimeOriginal']);
+		$this->assertArrayHasKey('error', $this->queueRequest([]));
+		$this->assertArrayHasKey('error', $this->queueRequest($files, ['UploadToken' => 'wrong']));
+		$files['images']['error'][0] = UPLOAD_ERR_INI_SIZE;
+		$this->assertStringContainsString('queued.png', $this->queueRequest($files)['error']);
+	}
+
+	public function testQueueSavesFormOnceAndStillAcceptsZipArchives(): void {
+		$this->upload(['original.png' => $this->png(0xFF0000)]);
+		$this->assertSame(['saved' => true, 'received' => 0], $this->queueRequest([], ['UploadOnly' => '0'],
+			['ALBUM' => ['D' => ['album1' => ['Title' => 'Changed']]]]));
+		$path = $this->tmp . '/images.zip';
+		$zip = new \ZipArchive();
+		$zip->open($path, \ZipArchive::CREATE);
+		$zip->addFromString('archived.png', $this->png(0x00FF00));
+		$zip->close();
+		$files = ['images' => ['name' => ['images.zip'], 'tmp_name' => [$path], 'error' => [UPLOAD_ERR_OK], 'size' => [filesize($path)]]];
+		$this->assertSame(['saved' => true, 'received' => 1], $this->queueRequest($files));
+		$f = ['ALBUM' => ['W' => [0 => ['ID' => 'album1']], 'IMAGE' => []]];
+		$this->db->get_object($stored, $f);
+		$this->assertSame('Changed', $stored['ALBUM']['D']['album1']['Title']);
+		$this->assertCount(2, $stored['ALBUM']['D']['album1']['IMAGE']['D']);
 	}
 }

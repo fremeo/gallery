@@ -1,0 +1,15 @@
+# Changelog
+#0.0.5 (unveroeffentlicht)
+! Frontend-Album- und Bildvorschauen ohne fest eingebrannte weisse Raender: proportional skalierte Bilder auf theme-abhaengiger Hintergrundfarbe, passend zu Dark/Light Mode.
+~ Upload-Zaehler mittig statt des Plus-Symbols in der Hinzufuegen-Kachel (z.B. 12/100), mit Fortschrittsbalken am unteren Rand. Der Stand steigt erst nach bestaetigter Speicherung.
+! Upload ueber echtes SEO-Routing getestet; benoetigt die korrigierte HTTP-Statussetzung des Cores fuer unverfaelschte JSON-Antworten.
++ Bilder-Upload beim Speichern als sequenzielle Warteschlange statt einer gemeinsamen Anfrage: auch grosse Auswahlen werden nicht durch max_file_uploads abgeschnitten.
++ Fortschrittsanzeige, explizite Upload-Fehler und Fortsetzen beim fehlgeschlagenen Eintrag; Albumdaten nur einmal speichern, Startbild, Reihenfolge, ZIP-Unterstuetzung und Aufnahmedaten erhalten.
++ Sitzungstoken und bestaetigte JSON-Antworten fuer Warteschlangen-Anfragen; einzelne Server-Dateigroessenlimits bleiben bestehen.
+~ Changelog im Core-Format mit Versionsabschnitten und gemeinsamer Legende.
+
+#Legende:
++ Neu
+- Entfernt
+~ Überarbeitet
+! Fehler

@@ -5,9 +5,21 @@ $DB       = $C['fremeo/gallery']['CData'];
 $File     = $C['fremeo/gallery']['File'];
 $id       = $R['Id'] ?? null;
 $imageExt = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif']; // erlaubte Dateitypen
+$queue = ($R['UploadQueue'] ?? null) === '1';
+$uploadOnly = $queue && ($R['UploadOnly'] ?? null) === '1';
+$received = 0;
+$_SESSION['GalleryUploadToken'] ??= bin2hex(random_bytes(32));
+$reply = static function (array $result, int $status = 200): void {
+	http_response_code($status);
+	header('Content-Type: application/json; charset=utf-8');
+	header('Cache-Control: private, no-store');
+	echo json_encode($result, JSON_THROW_ON_ERROR);
+	exit;
+};
 
-$E = ['Id' => $id, 'Msg' => null, 'Info' => null, 'Error' => null];
+$E = ['Id' => $id, 'Msg' => null, 'Info' => null, 'Error' => null, 'UploadToken' => $_SESSION['GalleryUploadToken']];
 if (!$id || !preg_match('/^[A-Za-z0-9_-]+$/', $id)) {
+	if ($queue) $reply(['error' => 'Kein gueltiges Album gewaehlt.'], 400);
 	$E['Id'] = null;
 	$E['Error'] = 'Kein gültiges Album gewählt.';
 	$R['GalleryEdit'] = $E; // Hilfswerte fürs Template ($D.R.GalleryEdit), $D enthält nur die Datenbankstruktur
@@ -34,14 +46,37 @@ $inUse = function ($fileId) use ($DB, $id) {
 	return false;
 };
 
+if ($queue && (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST' || !is_string($R['UploadToken'] ?? null)
+	|| !hash_equals($_SESSION['GalleryUploadToken'], $R['UploadToken']))) {
+	$reply(['error' => 'Upload nicht autorisiert oder Serverlimit ueberschritten. Seite neu laden.'], 403);
+}
+try {
+if ($queue && ($R['ACTION'] ?? null) !== 'save') throw new RuntimeException('Ungueltige Upload-Aktion.');
 if (($R['ACTION'] ?? null) == 'save') {
 	$post     = $D['ALBUM']['D'][$id] ?? [];
 	$old      = $load();
+	if ($queue && !$old) throw new RuntimeException('Das Album existiert nicht mehr.');
+	foreach (['cover' => $imageExt, 'images' => [...$imageExt, 'zip']] as $field => $extensions) {
+		if (isset($_FILES[$field]) && (!is_array($_FILES[$field]['name'] ?? null) || !is_array($_FILES[$field]['tmp_name'] ?? null)
+			|| !is_array($_FILES[$field]['error'] ?? null))) throw new RuntimeException('Ungueltige Upload-Dateiliste.');
+		foreach ((array)($_FILES[$field]['error'] ?? []) as $index => $error) {
+			if ($error === UPLOAD_ERR_NO_FILE) continue;
+			$name = $_FILES[$field]['name'][$index] ?? '';
+			if ($error !== UPLOAD_ERR_OK || !is_file($_FILES[$field]['tmp_name'][$index] ?? '')) {
+				throw new RuntimeException('Datei "' . $name . '" konnte nicht hochgeladen werden (Upload-Fehler ' . $error . '). Dateigroesse und Serverlimits pruefen.');
+			}
+			if (!in_array(strtolower(pathinfo($name, PATHINFO_EXTENSION)), $extensions, true)) throw new RuntimeException('Nicht erlaubter Dateityp: ' . $name);
+			if ($field === 'images') $received++;
+		}
+	}
+	if ($queue && $received !== ($uploadOnly ? 1 : 0)) throw new RuntimeException('Die Upload-Warteschlange erwartet genau eine Datei je Anfrage.');
+	if ($uploadOnly) $post = [];
 	$images   = (array)($old['IMAGE']['D'] ?? []);
 	$oldCover = $old['FileId'] ?? '';
 
 	$U = ['ALBUM' => ['D' => [$id => array_intersect_key($post, array_flip(['Active', 'Title', 'DateFrom', 'DateTo', 'Password', 'FileId']))]]];
 	$row = &$U['ALBUM']['D'][$id];
+	if ($uploadOnly) $row['FileId'] = $oldCover;
 
 	// Datum immer als Unix-Timestamp speichern (Zahl bleibt Zahl, Text wie 2026-10-14 oder 14.10.2026 wird umgerechnet, leer/ungültig = leer)
 	foreach (['DateFrom', 'DateTo'] as $k) {
@@ -66,7 +101,8 @@ if (($R['ACTION'] ?? null) == 'save') {
 	if (in_array($row['FileId'] ?? '', $deleted, true)) $row['FileId'] = '';
 	if (array_filter((array)($_FILES['cover']['tmp_name'] ?? []))) {
 		$cover = array_key_first($File->add($_FILES['cover'], $imageExt));
-		if ($cover) $row['FileId'] = $cover;
+		if (!$cover) throw new RuntimeException('Das Startbild konnte nicht gespeichert werden.');
+		$row['FileId'] = $cover;
 	}
 
 	// Neue Bilder (keine Begrenzung)
@@ -91,12 +127,21 @@ if (($R['ACTION'] ?? null) == 'save') {
 	if (array_filter((array)($_FILES['images']['tmp_name'] ?? []))) {
 		$sort = $images ? max(array_map(fn($i) => (int)($i['Sort'] ?? 0), $images)) + 1 : 0;
 		$uploaded = $File->add($_FILES['images'], [...$imageExt, 'zip']);
+		foreach ($_FILES['images']['tmp_name'] as $path) {
+			if (!isset($uploaded[md5_file($path)])) throw new RuntimeException('Eine Bilddatei konnte nicht gespeichert werden.');
+		}
 
 		// ZIP: entpacken, nur Bilder übernehmen, ZIP samt Eintrag entfernen
 		foreach ($uploaded as $zipId => $zipInfo) {
 			if ($zipInfo['Extension'] !== 'zip') continue;
 			$tmp = sys_get_temp_dir() . '/gallery_' . bin2hex(random_bytes(8));
-			foreach ($File->unzip($File->path($zipId, 'zip'), $tmp, $imageExt) as $path) {
+			$paths = $File->unzip($File->path($zipId, 'zip'), $tmp, $imageExt);
+			if (!$paths) {
+				$C['Filesystem']->remove($tmp);
+				$File->delete($zipId);
+				throw new RuntimeException('Das ZIP-Archiv enthaelt keine erlaubten Bilder.');
+			}
+			foreach ($paths as $path) {
 				$name = preg_replace('/^\d+_/', '', basename($path));
 				if ($img = $File->addFile($path, $name, $imageExt)) {
 					$uploaded[$img['Id']] = ['Name' => $img['Name'], 'Size' => $img['Size'], 'Extension' => $img['Extension']];
@@ -122,7 +167,7 @@ if (($R['ACTION'] ?? null) == 'save') {
 	$newCover = $row['FileId'] ?? '';
 
 	// SEO-Link: Eingabe leer = automatisch "gallery/titel" (nur wenn noch kein Link existiert), sonst anlegen bzw. umbenennen
-	if (isset($C['Link'])) {
+	if (!$uploadOnly && isset($C['Link'])) {
 		$Link   = $C['Link'];
 		$linkId = $old['LinkId'] ?? '';
 		$seoNow = $linkId ? ($Link->getById($linkId)['LINK']['D'][$linkId]['FromURL'] ?? '') : '';
@@ -156,6 +201,12 @@ if (($R['ACTION'] ?? null) == 'save') {
 
 	$E['Msg'] = 'Gespeichert';
 	unset($D['ALBUM']); // gepostete Daten nicht mit der Ausgabe vermischen
+	if ($queue) $reply(['saved' => true, 'received' => $received] + ($E['Info'] ? ['info' => $E['Info']] : []));
+}
+} catch (RuntimeException $error) {
+	error_log('Galerie-Upload: ' . $error->getMessage());
+	if ($queue) $reply(['error' => $error->getMessage()], 400);
+	$E['Error'] = $error->getMessage();
 }
 
 $album  = $load();

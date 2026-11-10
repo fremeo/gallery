@@ -8,12 +8,12 @@
 			{foreach $D.R.GalleryAlbums as $id => $a}
 			<div class="col">
 				<a href="{$a.Url|escape}" class="album-card card h-100 text-decoration-none shadow-sm">
-					<div class="ratio ratio-4x3 bg-light rounded-top overflow-hidden">
+					<div class="ratio ratio-4x3 bg-body-tertiary rounded-top overflow-hidden">
 						{if $a.FileId}
 							<picture class="ratio">
-								<source srcset="file/{$a.FileId}_480x360.avif" type="image/avif">
-								<source srcset="file/{$a.FileId}_480x360.webp" type="image/webp">
-								<img src="file/{$a.FileId}_480x360.jpg" alt="{$a.Title|escape}" class="object-fit-cover" loading="lazy">
+								<source srcset="file/{$a.FileId}_480.avif" type="image/avif">
+								<source srcset="file/{$a.FileId}_480.webp" type="image/webp">
+								<img src="file/{$a.FileId}_480.jpg" alt="{$a.Title|escape}" class="w-100 h-100 object-fit-contain" loading="lazy">
 							</picture>
 							
 						{else}

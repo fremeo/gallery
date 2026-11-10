@@ -45,9 +45,9 @@
 				{if ($img.Active|default:1) && $img.FileId}
 				<a href="file/{$img.FileId}_2000.avif" class="gallery-item glightbox3{if $shown >= 60} d-none gallery-more{/if}" data-download="file/{$img.FileId}.jpg" data-gallery="gallery1">
 					<picture>
-						<source srcset="file/{$img.FileId}_200x200.avif" type="image/avif">
-						<source srcset="file/{$img.FileId}_200x200.webp" type="image/webp">
-						<img src="file/{$img.FileId}_200x200.png" alt="" loading="lazy">
+						<source srcset="file/{$img.FileId}_200.avif" type="image/avif">
+						<source srcset="file/{$img.FileId}_200.webp" type="image/webp">
+						<img src="file/{$img.FileId}_200.png" alt="" loading="lazy">
 					</picture>
 					{if $img.DateTimeOriginal|default:''}<span class="gallery-date">{date('d.m.Y H:i:s', (int)$img.DateTimeOriginal)}</span>{/if}
 				</a>
@@ -70,8 +70,9 @@
 			{literal}
 			<style>
 				.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
-				.gallery-item { position: relative; display: block; aspect-ratio: 1 / 1; overflow: hidden; border-radius: .375rem; background: #f1f3f5; }
-				.gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s; }
+				.gallery-item { position: relative; display: block; aspect-ratio: 1 / 1; overflow: hidden; border-radius: .375rem; background: var(--bs-tertiary-bg); }
+				.gallery-item picture { display: block; width: 100%; height: 100%; }
+				.gallery-item img { width: 100%; height: 100%; object-fit: contain; transition: transform .3s; }
 				.gallery-item::after { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0); transition: background .3s; }
 				.gallery-item:hover img { transform: scale(1.08); }
 				.gallery-item:hover::after { background: rgba(0,0,0,.15); }

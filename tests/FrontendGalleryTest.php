@@ -78,6 +78,31 @@ class FrontendGalleryTest extends TestCase {
 		$this->assertArrayNotHasKey('Password', $album);
 	}
 
+	public function testPreviewTemplatesUseUnpaddedImagesAndThemeBackgrounds(): void {
+		$smarty = new \Smarty();
+		$smarty->setCompileDir($this->tmp);
+		$smarty->error_reporting = E_ALL & ~E_WARNING & ~E_DEPRECATED;
+		$smarty->assign('D', ['R' => ['Gallery' => ['Id' => 'open', 'Back' => 'gallery', 'NotFound' => false, 'Locked' => false], 'GalleryAlbums' => [
+			'open' => ['FileId' => 'preview', 'Title' => 'Album', 'Url' => 'gallery/album', 'Locked' => false, 'DateFrom' => '', 'DateTo' => ''],
+		]], 'ALBUM' => ['D' => ['open' => ['Title' => 'Album', 'IMAGE' => ['D' => [
+			'image' => ['FileId' => 'preview', 'Active' => 1],
+		]]]]]]);
+		try {
+			$album = $smarty->fetch(__DIR__ . '/../system/template/frontend__gallery.album.tpl');
+			$images = $smarty->fetch('string:' . file_get_contents(__DIR__ . '/../../core/system/template/include/input.tpl')
+				. file_get_contents(__DIR__ . '/../system/template/frontend__gallery.tpl'));
+			$this->assertStringContainsString('bg-body-tertiary', $album);
+			$this->assertStringContainsString('file/preview_480.avif', $album);
+			$this->assertStringNotContainsString('_480x360', $album);
+			$this->assertStringContainsString('file/preview_200.avif', $images);
+			$this->assertStringNotContainsString('_200x200', $images);
+			$this->assertStringContainsString('background: var(--bs-tertiary-bg)', $images);
+			$this->assertStringContainsString('object-fit: contain', $images);
+		} finally {
+			$smarty->clearAllAssign();
+		}
+	}
+
 	public function testLockedAlbumHasNoImagesAndNoPassword(): void {
 		[$D, $R] = $this->page(['Id' => 'locked']);
 
