@@ -15,10 +15,10 @@
 	{if $E.Info}<div class="alert alert-warning">{$E.Info|escape}</div>{/if}
 
 	{if $id}
-	<form method="post" enctype="multipart/form-data">
+	<form method="post" id="galleryEditForm" enctype="multipart/form-data">
 		<input type="hidden" name="R[ACTION]" value="save">
 
-		<div class="row g-3">
+		<div class="row g-3 mx-0">
 			<div class="col-md-4 d-flex align-items-end">
 				<label class="form-check form-switch fs-5 mb-1">
 					{input p=['name'=>"D[ALBUM][D][{$id}][Active]", 'type'=>'checkbox', 'value'=>$A.Active]}
@@ -84,11 +84,7 @@
 			'help'=>'Ziehen = sortieren, Papierkorb = entfernen, Plus = Bilder hinzufügen (beim Speichern einzeln hochgeladen)'
 		]}
 
-		<div class="mt-4">
-			<input type="hidden" name="R[FileModified]" id="fileModified" value="">
-			<button type="submit" class="btn btn-primary">Speichern</button>
-			<a class="btn btn-outline-secondary" href="{$list}">Abbrechen</a>
-		</div>
+		<input type="hidden" name="R[FileModified]" id="fileModified" value="">
 	</form>
 	{literal}
 	<script>
@@ -119,5 +115,16 @@
 		});
 	</script>
 	{/literal}
+	{/if}
+{/block}
+
+{block name="inner_footer"}
+	{if $D.R.GalleryEdit.Id}
+		<div class="bg-body-tertiary border-top p-2 d-flex flex-wrap justify-content-between align-items-center gap-2">
+			<div class="d-flex flex-wrap gap-2">
+				<button type="submit" form="galleryEditForm" class="btn btn-primary btn-sm">Speichern</button>
+				<a class="btn btn-outline-secondary btn-sm" href="admin/fremeo/gallery/list">Abbrechen</a>
+			</div>
+		</div>
 	{/if}
 {/block}

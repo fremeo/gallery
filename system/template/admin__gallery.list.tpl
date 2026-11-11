@@ -2,15 +2,14 @@
 	{** Admin: Alben-Liste (Daten aus admin__gallery.list.php, $D.R.GalleryAdmin) **}
 	{$G = $D.R.GalleryAdmin}
 	{$new_id = hash("crc32b", time())}
-	{$base = "?R[ModuleId]=fremeo/gallery&R[Page]=admin__gallery.list"}
 
-	<div class="d-flex justify-content-between align-items-center mb-3">
+	<div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
 		<h1 class="h4 mb-0"><i class="fa-solid fa-images me-1"></i> Bildergalerie <span class="badge text-bg-secondary">{$G.Total}</span></h1>
 		<a class="btn btn-primary btn-sm" href="admin/fremeo/gallery/edit?R[Id]={$new_id}&D[ALBUM][D][{$new_id}][Active]=1"><i class="fa-solid fa-plus"></i> Neues Album</a>
 	</div>
 
 	{if $G.Rows}
-	<form method="post">
+	<form method="post" id="galleryListForm">
 		<input type="hidden" name="D[ACTION]" value="save">
 		<div class="table-responsive">
 			<table class="table table-striped table-hover align-middle">
@@ -35,7 +34,7 @@
 								<span class="text-muted"><i class="fa-regular fa-image"></i></span>
 							{/if}
 						</td>
-						<td><a href="	admin/fremeo/gallery/edit?R[Id]={$id}">{$row.Title|default:'(ohne Titel)'|escape}</a></td>
+						<td class="text-break"><a href="admin/fremeo/gallery/edit?R[Id]={$id}">{$row.Title|default:'(ohne Titel)'|escape}</a></td>
 						<td class="text-center">{input p=['name'=>"D[ALBUM][D][{$id}][Active]", 'value'=>$row.Active, 'type'=>'checkbox']}</td>
 						<td>{$row.DateFrom|escape}</td>
 						<td>{$row.DateTo|escape}</td>
@@ -51,15 +50,27 @@
 			</table>
 		</div>
 
-		<div class="d-flex justify-content-between align-items-center">
-			<button type="submit" class="btn btn-primary btn-sm">Speichern</button>
-			<small class="text-muted">{$G.From}&ndash;{$G.To} von {$G.Total}</small>
-		</div>
 	</form>
 
+	{else}
+		<div class="alert alert-info">Keine Alben vorhanden.</div>
+	{/if}
+{/block}
+
+{block name="inner_footer"}
+	{if $D.R.GalleryAdmin.Rows}
+	{$G = $D.R.GalleryAdmin}
+	{$base = "?R[ModuleId]=fremeo/gallery&R[Page]=admin__gallery.list"}
+	<div class="bg-body-tertiary border-top p-2 d-flex flex-wrap justify-content-between align-items-center gap-2">
+		<div class="d-flex flex-wrap gap-2">
+			<button type="submit" form="galleryListForm" class="btn btn-primary btn-sm">Speichern</button>
+			<a class="btn btn-outline-secondary btn-sm" href="admin/fremeo/gallery/list?R[P]={$G.Page}">Abbrechen</a>
+		</div>
+		<div class="d-flex flex-wrap align-items-center gap-2">
+		<small class="text-muted">{$G.From}&ndash;{$G.To} von {$G.Total}</small>
 	{if $G.Pages > 1}
-	<nav class="mt-3" aria-label="Seiten">
-		<ul class="pagination pagination-sm justify-content-center mb-0">
+	<nav aria-label="Seiten">
+		<ul class="pagination pagination-sm flex-wrap mb-0">
 			<li class="page-item{if $G.Page <= 1} disabled{/if}"><a class="page-link" href="{$base}&R[P]={$G.Page - 1}">&laquo;</a></li>
 			{foreach $G.PageList as $p}
 				{if $p == 0}
@@ -72,7 +83,7 @@
 		</ul>
 	</nav>
 	{/if}
-	{else}
-		<div class="alert alert-info">Keine Alben vorhanden.</div>
+		</div>
+	</div>
 	{/if}
 {/block}

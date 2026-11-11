@@ -18,6 +18,44 @@ class AdminEditUploadTest extends TestCase {
 	private Container $C;
 	private CData $db;
 
+	public function testEditActionsUseExternalBackendFooterAndRetainUploadForm(): void {
+		$this->C->set('Security', new \fremeo\core\Security());
+		$smarty = new \Smarty();
+		$smarty->setCompileDir($this->tmp);
+		$smarty->assign('D', ['C' => $this->C, 'R' => ['GalleryEdit' => [
+			'Id' => 'album1', 'Album' => ['Active' => 1, 'Title' => 'Test', 'DateFrom' => '', 'DateTo' => '', 'Password' => '', 'FileId' => ''],
+			'Error' => '', 'Msg' => '', 'Info' => '', 'SeoUrl' => '', 'Cover' => [], 'Images' => [], 'UploadToken' => 'token',
+		]]]);
+		$core = __DIR__ . '/../../core/system/template/';
+		$template = 'string:' . file_get_contents($core . 'include/input.tpl')
+			. file_get_contents(__DIR__ . '/../system/template/admin__gallery.edit.tpl');
+		$html = $smarty->fetch($template);
+		$document = new \DOMDocument();
+		$previous = libxml_use_internal_errors(true);
+		try {
+			$document->loadHTML($html);
+			$xpath = new \DOMXPath($document);
+			$this->assertSame(1, $xpath->query('//form[@id="galleryEditForm"][@enctype="multipart/form-data"]')->length);
+			$this->assertSame(1, $xpath->query('//button[@type="submit"][@form="galleryEditForm"]')->length);
+			$this->assertSame(0, $xpath->query('//form[@id="galleryEditForm"]//button[@type="submit"]')->length);
+			$this->assertSame(1, $xpath->query('//input[@id="fileModified"]/ancestor::form[@id="galleryEditForm"]')->length);
+			$this->assertSame(1, $xpath->query('//a[text()="Abbrechen"][@href="admin/fremeo/gallery/list"]')->length);
+			$this->assertStringContainsString('bg-body-tertiary border-top p-2', $html);
+			$this->assertSame(1, $xpath->query('//form[@id="galleryEditForm"]/div[contains(concat(" ", normalize-space(@class), " "), " row ")][contains(concat(" ", normalize-space(@class), " "), " mx-0 ")]')->length);
+			$smarty->assign('D', ['C' => $this->C, 'R' => ['GalleryEdit' => [
+				'Id' => '', 'Album' => [], 'Error' => 'Album nicht gefunden.', 'Msg' => '', 'Info' => '',
+			]]]);
+			$html = $smarty->fetch($template);
+			$this->assertStringNotContainsString('id="galleryEditForm"', $html);
+			$this->assertStringNotContainsString('form="galleryEditForm"', $html);
+		} finally {
+			libxml_clear_errors();
+			libxml_use_internal_errors($previous);
+			$smarty->clearAllAssign();
+			unset($smarty);
+		}
+	}
+
 	protected function setUp(): void {
 		$this->tmp = sys_get_temp_dir() . '/fremeo_gallery_up_' . uniqid();
 		mkdir($this->tmp);

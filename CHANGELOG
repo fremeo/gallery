@@ -1,5 +1,8 @@
 # Changelog
 #0.0.6 (unveroeffentlicht)
+~ Alben-Liste: feste Backend-Aktionsleiste mit Speichern/Abbrechen links und Zaehler/Seitennavigation rechts; Kopf und Navigation umbrechbar, lange Titel ohne unnoetigen horizontalen Ueberlauf.
+! Album-Bearbeitung: negative aeussere Bootstrap-Rasterabstaende ausgeglichen, damit das Formular keinen unnoetigen horizontalen Scrollbalken erzeugt.
+~ Album-Bearbeitung: Speichern und Abbrechen gemaess Backend-Standard in dauerhaft sichtbare inner_footer-Aktionsleiste verschoben; Speichern explizit mit Upload-Formular verbunden.
 ! Startbild optional: leeres oder entferntes Startbild nicht mehr automatisch durch das erste Album-Bild ersetzen; unveraendertes Startbild bei Teilupdates erhalten.
 ! Core-Mindestabhaengigkeit von >=0.1 auf >=0.0.8 korrigiert: Core 0.0.8 erfuellt die benoetigten Funktionen; die bisherige Grenze verlangte irrtuemlich mindestens 0.1.0 und blockierte Gallery-Updates.
 
