@@ -1,4 +1,7 @@
 # Changelog
+#0.0.8
+! Die Passwortabfrage fuer geschuetzte Alben funktioniert auch bei aktiver Feldnamen-Hashung.
+
 #0.0.6 (unveroeffentlicht)
 ~ Alben-Liste: feste Backend-Aktionsleiste mit Speichern/Abbrechen links und Zaehler/Seitennavigation rechts; Kopf und Navigation umbrechbar, lange Titel ohne unnoetigen horizontalen Ueberlauf.
 ! Album-Bearbeitung: negative aeussere Bootstrap-Rasterabstaende ausgeglichen, damit das Formular keinen unnoetigen horizontalen Scrollbalken erzeugt.

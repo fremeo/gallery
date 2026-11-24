@@ -19,7 +19,7 @@
 							{if $G.Error}<div class="alert alert-danger py-2">{$G.Error|escape}</div>{/if}
 							<form method="post">
 								<div class="input-group">
-									{input p=['name'=>'R[Passwort]', 'type'=>'password', 'placeholder'=>'Passwort']}
+									<input type="password" name="R[Passwort]" class="form-control" placeholder="Passwort">
 									<button type="submit" class="btn btn-primary">Öffnen</button>
 								</div>
 							</form>

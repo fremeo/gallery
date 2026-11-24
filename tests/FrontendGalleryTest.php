@@ -89,8 +89,7 @@ class FrontendGalleryTest extends TestCase {
 		]]]]]]);
 		try {
 			$album = $smarty->fetch(__DIR__ . '/../system/template/frontend__gallery.album.tpl');
-			$images = $smarty->fetch('string:' . file_get_contents(__DIR__ . '/../../core/system/template/include/input.tpl')
-				. file_get_contents(__DIR__ . '/../system/template/frontend__gallery.tpl'));
+			$images = $smarty->fetch(__DIR__ . '/../system/template/frontend__gallery.tpl');
 			$this->assertStringContainsString('bg-body-tertiary', $album);
 			$this->assertStringContainsString('file/preview_480.avif', $album);
 			$this->assertStringNotContainsString('_480x360', $album);
@@ -113,7 +112,20 @@ class FrontendGalleryTest extends TestCase {
 	}
 
 	public function testCorrectPasswordOpensAlbum(): void {
-		[$D, $R] = $this->page(['Id' => 'locked', 'Passwort' => 'geheim']);
+		[$D, $R] = $this->page(['Id' => 'locked']);
+		$D['R'] = $R;
+		$smarty = new \Smarty();
+		$smarty->setCompileDir($this->tmp);
+		$smarty->assign('D', $D);
+		// Das Passwortfeld muss ohne den D-Feldnamen-Registrar rendern.
+		$html = $smarty->fetch(__DIR__ . '/../system/template/frontend__gallery.tpl');
+		$dom = new \DOMDocument();
+		@$dom->loadHTML($html);
+		$field = (new \DOMXPath($dom))->query('//form[@method="post"]//input[@type="password"]')->item(0);
+		$this->assertInstanceOf(\DOMElement::class, $field);
+		$this->assertSame('R[Passwort]', $field->getAttribute('name'));
+		parse_str(http_build_query([$field->getAttribute('name') => 'geheim']), $post);
+		[$D, $R] = $this->page(['Id' => 'locked'] + $post['R']);
 
 		$this->assertFalse($R['Gallery']['Locked']);
 		$this->assertSame(['x'], array_keys($D['ALBUM']['D']['locked']['IMAGE']['D']));

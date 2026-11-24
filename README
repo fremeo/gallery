@@ -10,6 +10,9 @@ Das Gallery-Modul ist eine flexible Erweiterung zur Verwaltung und visuellen Dar
 * **Download-Funktion:** Integrierte Möglichkeit für berechtigte Frontend-Besucher, die Bilder direkt herunterzuladen.
 
 ### System-Integration
+Die Passwortabfrage geschützter Alben sendet `R[Passwort]` per POST. Das Feld
+ist kein `D[...]`-Datenfeld und wird nicht über die Feldnamen-Hashung registriert.
+
 Frontend-Vorschaubilder verwenden eine einzelne maximale Kantenlaenge statt
 einer weiss aufgefuellten Bildflaeche. Die Kacheln zeigen das vollstaendige Bild
 mit `object-fit: contain` auf `--bs-tertiary-bg`, passend zum hellen/dunklen Theme.
